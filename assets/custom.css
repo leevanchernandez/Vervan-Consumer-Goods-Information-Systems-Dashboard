@@ -1,0 +1,269 @@
+body {
+  background-color: #fffaf3;
+}
+/* Global horizontal padding for all page containers */
+.dash-bootstrap {
+  padding-left: 3rem !important;
+  padding-right: 3rem !important;
+}
+
+
+/* ======================
+   Navbar link styles
+   ====================== */
+
+.nav-pill {
+  display: inline-flex;               /* center text */
+  align-items: center;                /* vertical center */
+  justify-content: center;            /* horizontal center */
+  width: 120px;                       /* uniform width */
+  height: 40px;                       /* uniform height */
+  border-radius: 999px;               /* pill shape */
+  text-decoration: none;              /* no underline */
+  color: #7a5d60;                     /* purple text */
+  background-color: #fffaf3;          /* off-white bg */
+  border: 1.5px solid #7a5d60;        /* purple outline */
+  font-weight: 500;                   /* medium text */
+  transition: all 0.2s ease-in-out;   /* smooth hover/active */
+  margin: 0 6px;                      /* spacing between pills */
+  white-space: nowrap;                /* prevent wrap */
+  overflow: hidden;                   /* hide overflow */
+  text-overflow: ellipsis;            /* add “...” if long */
+}
+
+.nav-pill:hover {
+  background-color: #7a5d60;
+  color: #fffaf3;
+}
+
+.nav-pill.active {
+  background-color: #7a5d60;
+  color: #fffaf3;
+}
+.navbar-custom {
+  background-color: transparent !important;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+}
+
+/* =====================================
+   reports.py 
+   =================================== */
+
+/* === Pill-style Date Picker === */
+.pill-date-picker {
+  width: 100% !important;
+  display: block !important;
+}
+
+/* force internal wrappers to stretch */
+.pill-date-picker .SingleDatePicker,
+.pill-date-picker .SingleDatePickerInput,
+.pill-date-picker .DateInput {
+  width: 100% !important;
+  display: block !important;
+}
+
+/* pill container */
+.pill-date-picker .SingleDatePickerInput {
+  border-radius: 999px !important;
+  border: 1px solid #d8c7a4 !important;
+  background-color: #fffaf3 !important;
+  overflow: hidden !important;
+  box-shadow: none !important;
+}
+
+/* input field */
+.pill-date-picker .DateInput_input {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  border-radius: 999px !important;
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0.6rem 1rem !important;
+  color: #3d2f25 !important;
+  font-weight: 500 !important;
+}
+
+/* focus state */
+.pill-date-picker .DateInput_input:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: 0 0 0 2px #7a5d60 !important;
+}
+
+
+/* --- General card color --- */
+.report-card {
+  background-color: #3d2f25 !important;
+  border-radius: 2rem !important;
+}
+
+/* --- Clickable text links --- */
+.report-link {
+  color: #fffaf3;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-weight: 500;
+  padding: 0.25rem 0;
+  border-radius: 8px;
+}
+
+.report-link:hover {
+  color: #ffebd2;
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(2px);
+}
+
+/* ========================
+   inventory.py styles
+   ======================== */
+
+/* --- Tab Pill Group --- */
+.tab-pill-group {
+  display: inline-flex;
+  border-radius: 999px;
+  overflow: hidden;
+  background-color: #3d2f25;
+  width: auto;
+  margin-left: 0; /* ensures it stays left aligned */
+}
+
+/* --- Tabs --- */
+.tab-pill-left,
+.tab-pill-right {
+  border: none !important;
+  background-color: #3d2f25 !important;
+  color: #fffaf3 !important;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0 !important;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  box-shadow: none !important;
+  outline: none !important;
+  text-decoration: none !important;
+}
+
+.tab-pill-left:hover,
+.tab-pill-right:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+.active-tab {
+  text-decoration: underline !important;
+}
+
+.tab-pill-left:focus,
+.tab-pill-right:focus,
+.tab-pill-left:active,
+.tab-pill-right:active {
+  outline: none !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+
+/* --- Main Card --- */
+.inventory-card {
+  background-color: #3d2f25 !important;
+  border-radius: 2rem !important;
+  padding: 2rem;
+}
+
+/* --- Add/Edit Button --- */
+.add-edit-btn {
+  border-radius: 999px !important;
+  background-color: #c69a9a !important;
+  color: #3d2f25 !important;
+  border: none !important;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
+
+.add-edit-btn:hover {
+  opacity: 0.9;
+}
+
+/* --- Search Input --- */
+.search-container {
+  text-align: left; /* left align label + input */
+}
+
+.search-label {
+  color: #fffaf3 !important;
+  display: block;
+}
+
+.supplier-search-input {
+  border-radius: 999px !important;
+  background-color: #fffaf3 !important;
+  color: #3d2f25 !important;
+  width: 300px !important;  /* fixed width */
+}
+
+/* --- Card Text --- */
+.inventory-card h2 {
+  color: #fffaf3 !important;
+}
+
+/* ========================
+   inventory_supplier.py styles
+   ======================== */
+
+.supplier-details-container {
+  background-color: #1e0f00;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+/* --- Title --- */
+.supplier-details-title {
+  color: #c69a9a !important;
+  font-weight: 700;
+}
+
+/* --- Card --- */
+.supplier-details-card {
+  background-color: #fffaf3 !important;
+  border-radius: 2rem !important;
+  padding: 2rem 3rem;
+  width: 100%;
+  max-width: 600px;
+  text-align: left;
+}
+
+/* --- Form Labels --- */
+.form-label {
+  color: #3d2f25 !important;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* --- Form Inputs --- */
+.form-input {
+  border-radius: 999px !important;
+  border: 1px solid #3d2f25 !important;
+  padding: 0.6rem 1rem !important;
+  color: #3d2f25 !important;
+}
+
+/* --- Dropdown --- */
+.form-dropdown .Select__control {
+  border-radius: 999px !important;
+  border: 1px solid #3d2f25 !important;
+  background-color: #fffaf3 !important;
+}
+
+.form-dropdown .Select__single-value {
+  color: #3d2f25 !important;
+}
+
+.form-dropdown .Select__menu {
+  background-color: #fffaf3 !important;
+}
