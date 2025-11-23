@@ -19,67 +19,69 @@ from apps.transactions import transactions
 app.layout = html.Div(
     [
         dcc.Location(id='url', refresh=False),
-        html.Div(id='navbar-container'),
+        dcc.Store(id='current_role', storage_type='session', data='public'),
+        # html.Div(id='navbar-container'), # Removed global navbar
         html.Div(id='page-content'),
     ]
 )
 
 @app.callback(
     Output('page-content', 'children'),
-    Input('url', 'pathname'),
+    [Input('url', 'pathname'),
+     Input('current_role', 'data')]
 )
 
-def displaypage(pathname):
+def displaypage(pathname, user_role):
+    if user_role is None:
+        user_role = "public"
+
+    layout = None
+    
     if pathname == '/home' or pathname == "/":
-        return home.layout
+        layout = home.layout
     elif pathname == '/login':
-        return login.layout
+        layout = login.layout
     elif pathname == '/adduser':
-        return adduser.layout
+        layout = adduser.layout
     elif pathname == '/ownerdashboard':
-        return ownerdashboard.layout
+        layout = ownerdashboard.layout
     elif pathname == '/reports':
-        return reports.layout
+        layout = reports.layout
     elif pathname == '/inventory':
-        return inventory.layout
+        layout = inventory.layout
     elif pathname == '/inventory/supplier':
-        return inventory_supplier.layout
+        layout = inventory_supplier.layout
     elif pathname == '/inventory/supplier/edit':
-        return supplier_edit.layout
+        layout = supplier_edit.layout
     elif pathname == '/inventory/products':
-        return inventory_products.layout
+        layout = inventory_products.layout
     elif pathname == '/inventory/products/add':
-        return products_add.layout
+        layout = products_add.layout
     elif pathname == '/inventory/products/edit':
-        return products_edit.layout
+        layout = products_edit.layout
     elif pathname == '/inventorydashboard':
-        return inventorydashboard.layout
+        layout = inventorydashboard.layout
     elif pathname == '/accountingdashboard':
-        return accountingdashboard.layout
+        layout = accountingdashboard.layout
     elif pathname == '/accounting':
-        return accounting.layout
+        layout = accounting.layout
     elif pathname == '/accounting/order':
-        return accounting_order.layout
+        layout = accounting_order.layout
     elif pathname == '/accounting/order/edit':
-        return order_edit.layout
+        layout = order_edit.layout
     elif pathname == '/transactions':
-        return transactions.layout
+        layout = transactions.layout
     else:
         return html.H1("404: Page not found", className="text-center text-danger")
-"""
-@app.callback(
-   Output('navbar-container', 'children'),
-   Input('url', 'pathname') 
-)
-
-# [todo] For now just set user_role to owner
-def displayNavbar(pathname):
-    user_role = "owner"
     
-    return cm.makeNavbar(user_role=user_role)
-"""
+    if callable(layout):
+        return layout(user_role=user_role)
+    else:
+        return layout
+
+# Navbar callback removed as it is now handled per page
+
 
 if __name__ == '__main__':
     webbrowser.open('http://127.0.0.1:8050/', new=0, autoraise=True)
     app.run(debug=True)
-

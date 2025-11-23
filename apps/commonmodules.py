@@ -25,8 +25,8 @@ def makeNavbar(user_role="public"):
     elif user_role == "accounting":
         nav_items = [
             dbc.NavLink("Dashboard", href="/accountingdashboard", active="exact", className="nav-pill"),
-            dbc.NavLink("Accounting", href="/reports", active="exact", className="nav-pill"),
-            dbc.NavLink("Inventory", href="/inventory", active="exact", className="nav-pill"),
+            dbc.NavLink("Accounting", href="/accounting", active="exact", className="nav-pill"),
+            dbc.NavLink("Transactions", href="/transactions", active="exact", className="nav-pill"),
         ]
     else:
         nav_items = []

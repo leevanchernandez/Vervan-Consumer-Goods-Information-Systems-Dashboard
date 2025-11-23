@@ -11,93 +11,94 @@ from dash.dependencies import Input, Output
 ownerName = "Vanessa"
 
 
-layout = dbc.Container(
-    [
-        makeNavbar(user_role="owner"),
-        # Greeting
-        html.H1(f"Hello, {ownerName}!", style={"color": "#7a5d60", "font-weight":"bold"}),
-        html.H6(
-            "This is what's happening in your store this month.",
-            style={"color": "#7a5d60"},
-        ),
-        
-        # Dashboard Cards
-        dbc.Row(
-            [
-                dbc.Col(
-                    dbc.Card(
-                        dbc.CardBody(
-                            [
-                                html.H5("Total Sales", style={"text-align": "center"}),
-                                html.H1("₱60,245.00", style={"text-align": "center"}),
-                            ],
+def layout(user_role="owner"):
+    return dbc.Container(
+        [
+            makeNavbar(user_role=user_role),
+            # Greeting
+            html.H1(f"Hello, {ownerName}!", style={"color": "#7a5d60", "font-weight":"bold"}),
+            html.H6(
+                "This is what's happening in your store this month.",
+                style={"color": "#7a5d60"},
+            ),
+            
+            # Dashboard Cards
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Card(
+                            dbc.CardBody(
+                                [
+                                    html.H5("Total Sales", style={"text-align": "center"}),
+                                    html.H1("₱60,245.00", style={"text-align": "center"}),
+                                ],
+                                style={
+                                    "display": "flex",
+                                    "flex-direction": "column",
+                                    "justify-content": "center",
+                                    "height": "100%",  # ensures flex takes full card height
+                                },
+                            ),
                             style={
-                                "display": "flex",
-                                "flex-direction": "column",
-                                "justify-content": "center",
-                                "height": "100%",  # ensures flex takes full card height
+                                "background-color": "#564e6d",
+                                "color": "#fffaf3",
+                                "border-radius": "2rem",
+                                "min-height": "180px",
                             },
                         ),
-                        style={
-                            "background-color": "#564e6d",
-                            "color": "#fffaf3",
-                            "border-radius": "2rem",
-                            "min-height": "180px",
-                        },
+                        width=4,
                     ),
-                    width=4,
-                ),
-                dbc.Col(
-                    dbc.Card(
-                        dbc.CardBody(
-                            [
-                                html.H5("Total Revenue", style={"text-align": "center"}),
-                                html.H1("₱12,365.00", style={"text-align": "center"}),
-                            ],
+                    dbc.Col(
+                        dbc.Card(
+                            dbc.CardBody(
+                                [
+                                    html.H5("Total Revenue", style={"text-align": "center"}),
+                                    html.H1("₱12,365.00", style={"text-align": "center"}),
+                                ],
+                                style={
+                                    "display": "flex",
+                                    "flex-direction": "column",
+                                    "justify-content": "center",
+                                    "height": "100%",
+                                },
+                            ),
                             style={
-                                "display": "flex",
-                                "flex-direction": "column",
-                                "justify-content": "center",
-                                "height": "100%",
+                                "background-color": "#c69a9a",
+                                "color": "#fffaf3",
+                                "border-radius": "2rem",
+                                "min-height": "180px",
                             },
                         ),
-                        style={
-                            "background-color": "#c69a9a",
-                            "color": "#fffaf3",
-                            "border-radius": "2rem",
-                            "min-height": "180px",
-                        },
+                        width=4,
                     ),
-                    width=4,
-                ),
-                dbc.Col(
-                    dbc.Card(
-                        dbc.CardBody(
-                            [
-                                html.H5("Total Orders", style={"text-align": "center"}),
-                                html.H1("52", style={"text-align": "center"}),
-                            ],
+                    dbc.Col(
+                        dbc.Card(
+                            dbc.CardBody(
+                                [
+                                    html.H5("Total Orders", style={"text-align": "center"}),
+                                    html.H1("52", style={"text-align": "center"}),
+                                ],
+                                style={
+                                    "display": "flex",
+                                    "flex-direction": "column",
+                                    "justify-content": "center",
+                                    "height": "100%",
+                                },
+                            ),
                             style={
-                                "display": "flex",
-                                "flex-direction": "column",
-                                "justify-content": "center",
-                                "height": "100%",
+                                "background-color": "#977b61",
+                                "color": "#fffaf3",
+                                "border-radius": "2rem",
+                                "min-height": "180px",
                             },
                         ),
-                        style={
-                            "background-color": "#977b61",
-                            "color": "#fffaf3",
-                            "border-radius": "2rem",
-                            "min-height": "180px",
-                        },
+                        width=4,
                     ),
-                    width=4,
-                ),
-            ],
-            className="mt-4",
-        ),
-    ],
-    fluid=True,
-    style={"padding": "2rem"},
-)
+                ],
+                className="mt-4",
+            ),
+        ],
+        fluid=True,
+        style={"padding": "2rem"},
+    )
 

@@ -3,61 +3,62 @@ import dash_bootstrap_components as dbc
 from dash import html, dcc
 from app import app
 from apps.commonmodules import makeNavbar
-layout = dbc.Container(
-    [
-        makeNavbar(user_role="owner"),
-        # === Page Title ===
-        html.H1("Supplier Details", className="supplier-details-title mb-5"),
+def layout(user_role="owner"):
+    return dbc.Container(
+        [
+            makeNavbar(user_role=user_role),
+            # === Page Title ===
+            html.H1("Supplier Details", className="supplier-details-title mb-5"),
 
-        # === Card ===
-        dbc.Card(
-            dbc.CardBody(
-                [
-                    # --- Supplier Name ---
-                    html.Label("Supplier Name:", className="form-label"),
-                    dbc.Input(
-                        type="text",
-                        placeholder="ex. Juan Dela Cruz",
-                        className="form-input mb-4",
-                    ),
+            # === Card ===
+            dbc.Card(
+                dbc.CardBody(
+                    [
+                        # --- Supplier Name ---
+                        html.Label("Supplier Name:", className="form-label"),
+                        dbc.Input(
+                            type="text",
+                            placeholder="ex. Juan Dela Cruz",
+                            className="form-input mb-4",
+                        ),
 
-                    # --- Contact Number ---
-                    html.Label("Contact Number:", className="form-label"),
-                    dbc.Input(
-                        type="text",
-                        placeholder="ex. 09xxxxxxxxx",
-                        className="form-input mb-4",
-                    ),
+                        # --- Contact Number ---
+                        html.Label("Contact Number:", className="form-label"),
+                        dbc.Input(
+                            type="text",
+                            placeholder="ex. 09xxxxxxxxx",
+                            className="form-input mb-4",
+                        ),
 
-                    # --- Address ---
-                    html.Label("Address:", className="form-label"),
-                    dbc.Input(
-                        type="text",
-                        placeholder="ex. 22 Cornelia Street, Quezon City",
-                        className="form-input mb-4",
-                    ),
+                        # --- Address ---
+                        html.Label("Address:", className="form-label"),
+                        dbc.Input(
+                            type="text",
+                            placeholder="ex. 22 Cornelia Street, Quezon City",
+                            className="form-input mb-4",
+                        ),
 
-                    # --- Supplier Product ---
-                    html.Label("Supplier Product:", className="form-label"),
-                    dbc.Select(
-                        options=[
-                            {"label": "Fabric", "value": "fabric"},
-                            {"label": "Packaging Material", "value": "packaging"},
-                            {"label": "Polymer Tubes", "value": "polymer_tubes"},
-                            {"label": "Screws and Rivets", "value": "screws_rivets"},
-                        ],
-                        placeholder="Select a product...",
-                        className="form-input mb-4",
-                    ),
+                        # --- Supplier Product ---
+                        html.Label("Supplier Product:", className="form-label"),
+                        dbc.Select(
+                            options=[
+                                {"label": "Fabric", "value": "fabric"},
+                                {"label": "Packaging Material", "value": "packaging"},
+                                {"label": "Polymer Tubes", "value": "polymer_tubes"},
+                                {"label": "Screws and Rivets", "value": "screws_rivets"},
+                            ],
+                            placeholder="Select a product...",
+                            className="form-input mb-4",
+                        ),
 
-                    # --- Price ---
-                    html.Label("Price (in PHP):", className="form-label"),
-                    dbc.Input(
-                        type="number",
-                        placeholder="2200",
-                        className="form-input mb-4",
-                    ),
-                                        dbc.Row(
+                        # --- Price ---
+                        html.Label("Price (in PHP):", className="form-label"),
+                        dbc.Input(
+                            type="number",
+                            placeholder="2200",
+                            className="form-input mb-4",
+                        ),
+                                            dbc.Row(
                         [
                             dbc.Col(width=3),  # Spacer (left)
                             dbc.Col(
