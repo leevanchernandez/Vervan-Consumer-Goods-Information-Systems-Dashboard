@@ -5,6 +5,7 @@ from app import app
 from apps.commonmodules import makeNavbar
 from dash.dependencies import Input, Output, State
 from apps.dbconnect import getDataFromDB
+import pandas as pd
 
 # === Function to fetch supplier data from the database ===
 def fetch_suppliers():
@@ -12,9 +13,11 @@ def fetch_suppliers():
     Fetch supplier details along with one product and its price.
     """
     sql = """
-        SELECT s.supplier_name,
+        SELECT s.supplier_id,
+               s.supplier_name,
                s.supplier_contact_number,
                s.address,
+               p.product_id,
                p.product_name,
                p.selling_price
         FROM supplier s
@@ -22,7 +25,7 @@ def fetch_suppliers():
         WHERE s.supplier_delete_ind = FALSE
         ORDER BY s.supplier_name
     """
-    colnames = ["Supplier Name", "Contact Number", "Address", "Product Name", "Price"]
+    colnames = ["supplier_id", "Supplier Name", "Contact Number", "Address", "product_id", "Product Name", "Price"]
     df = getDataFromDB(sql, [], colnames)
     return df
 
@@ -122,6 +125,15 @@ def update_supplier_table(search_value):
     # Generate table rows
     table_rows = []
     for _, row in df_suppliers.iterrows():
+        # Handle cases where product_id might be None or NaN
+        product_id = row['product_id']
+        if pd.notna(product_id) and product_id is not None:
+             # Ensure it's an integer string if it's a float-like integer
+             product_id_val = int(product_id)
+             product_id_param = f"&product_id={product_id_val}"
+        else:
+             product_id_param = ""
+        
         table_rows.append(
             html.Tr(
                 [
@@ -133,7 +145,7 @@ def update_supplier_table(search_value):
                     html.Td(
                         dbc.Button(
                             "Edit",
-                            href="/inventory/supplier/edit",
+                            href=f"/inventory/supplier/edit?id={row['supplier_id']}{product_id_param}",
                             color="secondary",
                             size="sm",
                             style={
