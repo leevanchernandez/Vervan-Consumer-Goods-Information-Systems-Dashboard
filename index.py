@@ -15,7 +15,7 @@ from apps.inventory import inventory, inventory_supplier, inventory_products, pr
 from apps.accounting import accounting, accounting_order, order_edit
 from apps.transactions import transactions
 
-# Test comment
+
 app.layout = html.Div(
     [
         dcc.Location(id='url', refresh=False),
