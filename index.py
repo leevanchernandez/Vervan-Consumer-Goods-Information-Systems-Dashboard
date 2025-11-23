@@ -20,6 +20,7 @@ app.layout = html.Div(
     [
         dcc.Location(id='url', refresh=False),
         dcc.Store(id='current_role', storage_type='session', data='public'),
+        dcc.Store(id='current_user_id', storage_type='session'),
         # html.Div(id='navbar-container'), # Removed global navbar
         html.Div(id='page-content'),
     ]

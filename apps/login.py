@@ -6,7 +6,7 @@ from dash.exceptions import PreventUpdate
 
 from app import app
 from apps.commonmodules import makeNavbar
-from apps.dbconnect import getDataFromDB
+from apps.dbconnect import getDataFromDB, hash_string
 
 # Coloring
 bg_color = "#1e0f00",
@@ -127,7 +127,8 @@ def layout(user_role="public"):
         Output('url_login', 'pathname'),
         Output('login_alert', 'is_open'),
         Output('login_alert', 'children'),
-        Output('current_role', 'data')
+        Output('current_role', 'data'),
+        Output('current_user_id', 'data')
     ],
     [
         Input('login-button', 'n_clicks')
@@ -140,7 +141,7 @@ def layout(user_role="public"):
 def login_process(n_clicks, username, password):
     if n_clicks > 0:
         if username is None or password is None or username == "" or password == "":
-            return [dash.no_update, True, "Please enter both username and password.", dash.no_update]
+            return [dash.no_update, True, "Please enter both username and password.", dash.no_update, dash.no_update]
         
         sql = """
             SELECT staff_id, staff_name, staff_username, staff_password, staff_role
@@ -153,8 +154,11 @@ def login_process(n_clicks, username, password):
         if not df.empty:
             stored_password = df.iloc[0]['staff_password']
             role = df.iloc[0]['staff_role']
+            staff_id = df.iloc[0]['staff_id']
             
-            if stored_password == password:
+            hashed_input = hash_string(password)
+            
+            if stored_password == hashed_input:
                 # Determine redirect URL based on role
                 if role == 'owner':
                     redirect_url = "/ownerdashboard"
@@ -165,10 +169,10 @@ def login_process(n_clicks, username, password):
                 else:
                     redirect_url = "/home" # Fallback
 
-                return [redirect_url, False, "", role]
+                return [redirect_url, False, "", role, staff_id]
             else:
-                return [dash.no_update, True, "Incorrect password.", dash.no_update]
+                return [dash.no_update, True, "Incorrect password.", dash.no_update, dash.no_update]
         else:
-            return [dash.no_update, True, "User not found.", dash.no_update]
+            return [dash.no_update, True, "User not found.", dash.no_update, dash.no_update]
             
     raise PreventUpdate

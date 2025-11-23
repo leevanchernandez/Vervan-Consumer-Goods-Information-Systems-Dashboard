@@ -2,7 +2,6 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import html, dcc, Input, Output, State, ALL, MATCH, ctx
 from dash.exceptions import PreventUpdate
-import flask
 from app import app
 from apps.commonmodules import makeNavbar
 from apps.dbconnect import getDataFromDB, modifyDB
@@ -264,9 +263,10 @@ def manage_product_rows(add_clicks, remove_clicks, children, product_options):
      State('order_date', 'date'),
      State('order_status', 'value'),
      State({'type': 'order_product_dropdown', 'index': ALL}, 'value'),
-     State({'type': 'order_product_qty', 'index': ALL}, 'value')]
+     State({'type': 'order_product_qty', 'index': ALL}, 'value'),
+     State('current_user_id', 'data')]
 )
-def submit_order(n_clicks, username, order_date, status_id, product_ids, quantities):
+def submit_order(n_clicks, username, order_date, status_id, product_ids, quantities, staff_id):
     if not n_clicks:
         raise PreventUpdate
     
@@ -286,8 +286,7 @@ def submit_order(n_clicks, username, order_date, status_id, product_ids, quantit
         return False, dbc.Alert("Please ensure all added products have a selected product and valid quantity.", color="danger")
 
     try:
-        # 1. Get Staff ID from session
-        staff_id = flask.session.get("staff_id")
+        # 1. Get Staff ID from session (now passed as state)
         # For robustness during development if session is empty:
         if staff_id is None:
              # Try to find a default staff or error? 
