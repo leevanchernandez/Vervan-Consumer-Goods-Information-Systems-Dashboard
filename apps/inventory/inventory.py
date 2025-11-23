@@ -124,16 +124,9 @@ def update_supplier_table(search_value):
 
     # Generate table rows
     table_rows = []
+# inside update_supplier_table callback
     for _, row in df_suppliers.iterrows():
-        # Handle cases where product_id might be None or NaN
-        product_id = row['product_id']
-        if pd.notna(product_id) and product_id is not None:
-             # Ensure it's an integer string if it's a float-like integer
-             product_id_val = int(product_id)
-             product_id_param = f"&product_id={product_id_val}"
-        else:
-             product_id_param = ""
-        
+        product_id_param = f"&product_id={int(row['product_id'])}" if pd.notna(row['product_id']) else ""
         table_rows.append(
             html.Tr(
                 [
@@ -162,6 +155,7 @@ def update_supplier_table(search_value):
                 ]
             )
         )
+
 
     # Return the table
     return dbc.Table(

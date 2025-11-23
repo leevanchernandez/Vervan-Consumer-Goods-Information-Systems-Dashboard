@@ -163,28 +163,29 @@ def load_supplier_details(search):
     query_params = urllib.parse.parse_qs(parsed.query)
     supplier_id = query_params.get('id', [None])[0]
     product_id = query_params.get('product_id', [None])[0]
-    
+
     if not supplier_id:
         raise PreventUpdate
-        
-    # If product_id is present, fetch specific product. If not, fetch any (or first) product for that supplier
-    # Ideally, if product_id is missing, we might just show supplier details and blank product fields,
-    # but for now let's keep the behavior of showing *some* product if available, or handle the specific one.
-    
+
     sql = """
-        SELECT s.supplier_name, s.address, s.supplier_contact_number, p.product_name, p.supplied_price, s.supplier_delete_ind
+        SELECT s.supplier_name, s.address, s.supplier_contact_number,
+               p.product_id, p.product_name, p.supplied_price,
+               s.supplier_delete_ind
         FROM supplier s
         LEFT JOIN product p ON s.supplier_id = p.supplier_id
         WHERE s.supplier_id = %s
     """
     params = [supplier_id]
-    
     if product_id:
         sql += " AND p.product_id = %s"
         params.append(product_id)
-        
-    df = getDataFromDB(sql, params, ["supplier_name", "address", "supplier_contact_number", "product_name", "supplied_price", "supplier_delete_ind"])
-    
+
+    df = getDataFromDB(sql, params, [
+        "supplier_name", "address", "supplier_contact_number",
+        "product_id", "product_name", "supplied_price",
+        "supplier_delete_ind"
+    ])
+
     if not df.empty:
         row = df.iloc[0]
         return (
@@ -195,8 +196,9 @@ def load_supplier_details(search):
             row['supplied_price'],
             row['supplier_delete_ind'],
             supplier_id,
-            product_id
+            row['product_id']  # store actual product_id from DB
         )
+
     return None, None, None, None, None, False, None, None
 
 # === Callback to Save Changes ===
@@ -216,35 +218,30 @@ def load_supplier_details(search):
 def save_supplier_changes(n_clicks, supplier_id, product_id, name, address, contact, product_name, price, delete_ind):
     if not n_clicks or not supplier_id:
         raise PreventUpdate
-        
+
     try:
-        # Update Supplier
+        # Update supplier
         sql_supplier = """
             UPDATE supplier
-            SET 
-            supplier_name=%s,
-            address=%s,
-            supplier_contact_number=%s,
-            supplier_delete_ind=%s
+            SET supplier_name=%s,
+                address=%s,
+                supplier_contact_number=%s,
+                supplier_delete_ind=%s
             WHERE supplier_id=%s
         """
         modifyDB(sql_supplier, [name, address, contact, delete_ind, supplier_id])
-        
-        # Update Product
-        # Only update product if product_id is available (meaning we are editing a specific product)
-        # If product_id is None but fields are filled, we could potentially INSERT a new product, 
-        # but for this specific "Edit" flow, let's stick to updating if it exists.
-        if product_id and product_name and price is not None:
+
+        # Update product
+        if product_id:  # ensure we have product_id
             sql_product = """
                 UPDATE product
-                SET 
-                product_name=%s,
-                supplied_price=%s
+                SET product_name=%s,
+                    supplied_price=%s
                 WHERE product_id=%s
             """
             modifyDB(sql_product, [product_name, price, product_id])
-            
+
         return True, ""
-        
+
     except Exception as e:
         return False, dbc.Alert(f"Error updating supplier: {str(e)}", color="danger")
