@@ -125,10 +125,10 @@ def update_owner_dashboard(user_id):
 
     # 1. Update Greeting
     if user_id:
-        sql_user = "SELECT staff_username FROM staff WHERE staff_id = %s"
-        df_user = getDataFromDB(sql_user, [user_id], ["staff_username"])
+        sql_user = "SELECT staff_name FROM staff WHERE staff_id = %s"
+        df_user = getDataFromDB(sql_user, [user_id], ["staff_name"])
         if not df_user.empty:
-            greeting = f"Hello, {df_user.iloc[0]['staff_username']}!"
+            greeting = f"Hello, {df_user.iloc[0]['staff_name']}!"
 
     # 2. Calculate Total Revenue (This Month)
     sql_revenue = """
