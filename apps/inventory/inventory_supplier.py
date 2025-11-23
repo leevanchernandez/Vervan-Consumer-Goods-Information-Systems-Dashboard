@@ -140,7 +140,7 @@ def submit_supplier(n_clicks, name, contact, address, selected_product, new_prod
 
         # Insert product
         sql_product = """
-            INSERT INTO product (product_name, selling_price, supplier_id)
+            INSERT INTO product (product_name, supplied_price, supplier_id)
             VALUES (%s, %s, %s)
         """
         modifyDB(sql_product, [product_name, price, supplier_id])

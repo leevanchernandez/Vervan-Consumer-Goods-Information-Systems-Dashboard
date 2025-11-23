@@ -19,7 +19,7 @@ def fetch_suppliers():
                s.address,
                p.product_id,
                p.product_name,
-               p.selling_price
+               p.supplied_price
         FROM supplier s
         LEFT JOIN product p ON p.supplier_id = s.supplier_id
         WHERE s.supplier_delete_ind = FALSE
