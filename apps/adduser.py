@@ -1,9 +1,10 @@
 import dash
 import dash_bootstrap_components as dbc
-from dash import html, dcc
+from dash import html, dcc, Input, Output, State
 from dash.exceptions import PreventUpdate
 from apps.commonmodules import makeNavbar
 from app import app
+from apps.dbconnect import modifyDB, getDataFromDB, hash_string
 
 # Coloring
 bg_color = "#1e0f00"
@@ -36,6 +37,7 @@ def layout(user_role="owner"):
                             },
                         ),
                         dbc.Input(
+                            id="add_user_name",
                             type="text",
                             placeholder="ex. Juan Dela Cruz",
                             style={
@@ -55,6 +57,7 @@ def layout(user_role="owner"):
                             },
                         ),
                         dbc.Input(
+                            id="add_user_username",
                             type="text",
                             placeholder="ex. vervan1223",
                             style={
@@ -78,6 +81,7 @@ def layout(user_role="owner"):
                                             },
                                         ),
                                         dbc.Input(
+                                            id="add_user_password",
                                             type="password",
                                             placeholder="ex. 12345678",
                                             style={
@@ -100,6 +104,7 @@ def layout(user_role="owner"):
                                             },
                                         ),
                                         dbc.Input(
+                                            id="add_user_confirmpass",
                                             type="password",
                                             placeholder="ex. 12345678",
                                             style={
@@ -123,10 +128,11 @@ def layout(user_role="owner"):
                             },
                         ),
                         dbc.Select(
+                            id="add_user_role",
                             options=[
                                 {"label": "Inventory Staff", "value": "inventory"},
-                                {"label": "Accounting Staff", "value": "Accounting Staff"},
-                                {"label": "Owner", "value": "Owner"},
+                                {"label": "Accounting Staff", "value": "accounting"},
+                                {"label": "Owner", "value": "owner"},
                             ],
                             style={
                                 "borderRadius": "30px",
@@ -139,8 +145,7 @@ def layout(user_role="owner"):
 
                         dbc.Button(
                             "Submit",
-                            href="/ownerdashboard",
-                            id="signup-button",
+                            id="add_user_submit_btn",
                             n_clicks=0,
                             style={
                                 "backgroundColor": accent_color,
@@ -153,11 +158,97 @@ def layout(user_role="owner"):
                                 "boxShadow": "0px 3px 8px rgba(0, 0, 0, 0.2)",
                             },
                         ),
+                        html.Div(id="add_user_feedback", className="mt-3 text-center"),
                     ]
                 ),
                 className="supplier-details-card",
+            ),
+            
+            # === Success Modal ===
+            dbc.Modal(
+                [
+                    dbc.ModalHeader(dbc.ModalTitle("Success")),
+                    dbc.ModalBody("New user added successfully."),
+                    dbc.ModalFooter(
+                        dbc.Button(
+                            "Close", 
+                            id="add_user_success_close",
+                            className="ms-auto", 
+                            n_clicks=0,
+                            style={
+                                "backgroundColor": accent_color,
+                                "color": "#fff",
+                                "border": "none",
+                                "borderRadius": "30px",
+                                "padding": "10px 30px",
+                                "fontWeight": "600",
+                            }
+                        )
+                    ),
+                ],
+                id="add_user_success_modal",
+                is_open=False,
+                centered=True,
+                backdrop="static",
             ),
         ],
         fluid=True,
         className="supplier-details-container",
     )
+
+@app.callback(
+    [Output('add_user_success_modal', 'is_open'),
+     Output('add_user_feedback', 'children')],
+    [Input('add_user_submit_btn', 'n_clicks'),
+     Input('add_user_success_close', 'n_clicks')],
+    [State('add_user_name', 'value'),
+     State('add_user_username', 'value'),
+     State('add_user_password', 'value'),
+     State('add_user_confirmpass', 'value'),
+     State('add_user_role', 'value'),
+     State('add_user_success_modal', 'is_open')]
+)
+def add_new_user(submit_clicks, close_clicks, name, username, password, confirmpass, role, is_open):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        raise PreventUpdate
+        
+    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if trigger_id == 'add_user_success_close':
+        return False, ""
+
+    if trigger_id == 'add_user_submit_btn':
+        if not submit_clicks:
+            raise PreventUpdate
+            
+        # Validation
+        if not all([name, username, password, confirmpass, role]):
+            return False, dbc.Alert("Please fill in all fields.", color="danger")
+        
+        if password != confirmpass:
+            return False, dbc.Alert("Passwords do not match.", color="danger")
+            
+        # Check if username exists
+        sql_check = "SELECT staff_id FROM staff WHERE staff_username = %s AND staff_delete_ind = FALSE"
+        df_check = getDataFromDB(sql_check, [username], ["staff_id"])
+        if not df_check.empty:
+            return False, dbc.Alert("Username already exists.", color="danger")
+            
+        try:
+            # Hash Password
+            hashed_password = hash_string(password)
+            
+            # Insert User
+            sql_insert = """
+                INSERT INTO staff (staff_username, staff_name, staff_password, staff_role, staff_delete_ind)
+                VALUES (%s, %s, %s, %s, FALSE)
+            """
+            modifyDB(sql_insert, [username, name, hashed_password, role])
+            
+            return True, ""
+            
+        except Exception as e:
+            return False, dbc.Alert(f"Error adding user: {str(e)}", color="danger")
+            
+    return is_open, ""
