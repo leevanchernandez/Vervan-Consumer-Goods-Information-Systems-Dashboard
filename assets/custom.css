@@ -267,3 +267,17 @@ body {
 .form-dropdown .Select__menu {
   background-color: #fffaf3 !important;
 }
+
+.report-link {
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.report-link:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    padding-left: 0.4rem;
+}
+
+.report-link-active {
+    border-left: 4px solid #faf3e7;
+}
