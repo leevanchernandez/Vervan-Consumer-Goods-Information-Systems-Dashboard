@@ -31,11 +31,31 @@ def makeNavbar(user_role="public"):
     else:
         nav_items = []
 
-    # === Conditionally include logo ===
+    # === Conditionally include logo and logout ===
     logo_element = None
     logout_btn = None
+    logout_modal = None
+    
     if user_role != "public":
-        logout_btn = dbc.Button("Logout", href="/home", className="nav-pill me-3")
+        # Logout Button (triggers modal)
+        logout_btn = dbc.Button("Logout", id="logout_btn", n_clicks=0, className="nav-pill me-3")
+        
+        # Logout Confirmation Modal
+        logout_modal = dbc.Modal(
+            [
+                dbc.ModalHeader(dbc.ModalTitle("Confirm Logout")),
+                dbc.ModalBody("Are you sure you want to log out?"),
+                dbc.ModalFooter(
+                    [
+                        dbc.Button("Cancel", id="logout_cancel", className="ms-auto", n_clicks=0),
+                        dbc.Button("Logout", id="logout_confirm", href="/login", className="ms-2", n_clicks=0, style={"backgroundColor": "#7a5d60", "border": "none"}),
+                    ]
+                ),
+            ],
+            id="logout_modal",
+            is_open=False,
+            centered=True,
+        )
         
         logo_element = html.Div(
             dcc.Link(
@@ -74,5 +94,8 @@ def makeNavbar(user_role="public"):
         ),
         className="navbar-custom",
     )
-
-    return navbar
+    
+    if logout_modal:
+        return html.Div([navbar, logout_modal])
+    else:
+        return navbar

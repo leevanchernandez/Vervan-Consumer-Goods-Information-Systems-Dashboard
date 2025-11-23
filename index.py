@@ -82,6 +82,35 @@ def displaypage(pathname, user_role):
 
 # Navbar callback removed as it is now handled per page
 
+@app.callback(
+    [Output("logout_modal", "is_open"),
+     Output("current_role", "data", allow_duplicate=True),
+     Output("current_user_id", "data", allow_duplicate=True)],
+    [Input("logout_btn", "n_clicks"),
+     Input("logout_cancel", "n_clicks"),
+     Input("logout_confirm", "n_clicks")],
+    [State("logout_modal", "is_open")],
+    prevent_initial_call=True
+)
+def toggle_logout_modal(n_btn, n_cancel, n_confirm, is_open):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return is_open, dash.no_update, dash.no_update
+    
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    
+    if button_id == "logout_btn":
+        if n_btn and n_btn > 0:
+            return True, dash.no_update, dash.no_update
+    elif button_id == "logout_cancel":
+        if n_cancel and n_cancel > 0:
+            return False, dash.no_update, dash.no_update
+    elif button_id == "logout_confirm":
+        if n_confirm and n_confirm > 0:
+            return False, "public", None
+    
+    return is_open, dash.no_update, dash.no_update
+
 
 if __name__ == '__main__':
     webbrowser.open('http://127.0.0.1:8050/', new=0, autoraise=True)
