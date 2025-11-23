@@ -1,14 +1,10 @@
 import dash
 import dash_bootstrap_components as dbc
-from dash import dcc, html
+from dash import dcc, html, Input, Output, State
 from dash.exceptions import PreventUpdate
-
 from app import app
 from apps.commonmodules import makeNavbar
-from dash.dependencies import Input, Output
-
-# [todo] ownerName is Vanessa for now, should be dynamic based on login
-ownerName = "Vanessa"
+from apps.dbconnect import getDataFromDB
 
 def layout(user_role="inventory"):
     return dbc.Container(
@@ -16,8 +12,9 @@ def layout(user_role="inventory"):
             makeNavbar(user_role=user_role),
             # Greeting
             html.H1(
-                f"Hello, {ownerName}!",
-                style={"color": "#7a5d60", "font-weight": "bold"}
+                "Hello!", 
+                id="inv_greeting",
+                style={"color": "#7a5d60", "fontWeight": "bold"}
             ),
             html.H6(
                 "Here are the recent product updates.",
@@ -33,46 +30,20 @@ def layout(user_role="inventory"):
                             dbc.CardBody(
                                 [
                                     html.H5("Inventory Summary", className="card-title mb-3"),
-                                    dbc.Table(
-                                        # Placeholder data: 3 columns, 5 rows
-                                        [
-                                            html.Thead(
-                                                html.Tr(
-                                                    [
-                                                        html.Th("Product"),
-                                                        html.Th("Stock"),
-                                                        html.Th("Status"),
-                                                    ]
-                                                )
-                                            ),
-                                            html.Tbody(
-                                                [
-                                                    html.Tr(
-                                                        [html.Td(f"Item {i+1}"), html.Td("50"), html.Td("Normal")]
-                                                    )
-                                                    for i in range(5)
-                                                ]
-                                            ),
-                                        ],
-                                        bordered=True,
-                                        striped=True,
-                                        hover=True,
-                                        responsive=True,
-                                        style={"background-color": "#fffaf3", "color": "#3d2f25"},
-                                    ),
+                                    html.Div(id="inv_summary_table"),
                                 ],
                                 style={
                                     "display": "flex",
-                                    "flex-direction": "column",
-                                    "justify-content": "center",
+                                    "flexDirection": "column",
+                                    "justifyContent": "center",
                                     "height": "100%",
                                 },
                             ),
                             style={
-                                "background-color": "#3d2f25",
+                                "backgroundColor": "#3d2f25",
                                 "color": "#fffaf3",
-                                "border-radius": "2rem",
-                                "min-height": "180px",
+                                "borderRadius": "2rem",
+                                "minHeight": "180px",
                                 "padding": "1rem",
                             },
                         ),
@@ -85,27 +56,20 @@ def layout(user_role="inventory"):
                             dbc.CardBody(
                                 [
                                     html.H4("Low Stock Alert!", className="card-title mb-3"),
-                                    html.Ul(
-                                        [
-                                            html.Li("*Item A (placeholder)"),
-                                            html.Li("*Item B (placeholder)"),
-                                            html.Li("*Item C (placeholder)"),
-                                        ],
-                                        style={"margin-left": "1rem"},
-                                    ),
+                                    html.Div(id="inv_low_stock_list"),
                                 ],
                                 style={
                                     "display": "flex",
-                                    "flex-direction": "column",
-                                    "justify-content": "flex-start",
+                                    "flexDirection": "column",
+                                    "justifyContent": "flexStart",
                                     "height": "100%",
                                 },
                             ),
                             style={
-                                "background-color": "#564e6d",
+                                "backgroundColor": "#564e6d",
                                 "color": "#fffaf3",
-                                "border-radius": "2rem",
-                                "min-height": "180px",
+                                "borderRadius": "2rem",
+                                "minHeight": "180px",
                                 "padding": "1rem",
                             },
                         ),
@@ -115,5 +79,106 @@ def layout(user_role="inventory"):
                 className="mt-4",
             ),
         ],
+        fluid=True,
         style={"padding": "2rem"},
     )
+
+@app.callback(
+    [Output("inv_greeting", "children"),
+     Output("inv_summary_table", "children"),
+     Output("inv_low_stock_list", "children")],
+    [Input("current_user_id", "data")]
+)
+def update_inventory_dashboard(user_id):
+    # Default values
+    greeting = "Hello!"
+    table_content = html.P("No products found.", style={"fontStyle": "italic", "color": "#fffaf3"})
+    low_stock_content = html.P("No low stock items.", style={"fontStyle": "italic"})
+
+    # 1. Update Greeting
+    if user_id:
+        sql_user = "SELECT staff_name FROM staff WHERE staff_id = %s"
+        df_user = getDataFromDB(sql_user, [user_id], ["staff_name"])
+        if not df_user.empty:
+            greeting = f"Hello, {df_user.iloc[0]['staff_name']}!"
+
+    # 2. Fetch Inventory Data
+    sql_inv = """
+        SELECT product_name, beginning_inventory
+        FROM product
+        WHERE product_delete_ind = FALSE
+        ORDER BY product_name;
+    """
+    df_inv = getDataFromDB(sql_inv, [], ["product_name", "beginning_inventory"])
+    
+    if not df_inv.empty:
+        # --- Build Summary Table ---
+        table_rows = []
+        low_stock_items = []
+        
+        import pandas as pd
+        
+        for _, row in df_inv.iterrows():
+            stock = row['beginning_inventory']
+            
+            # Handle None/NaN stock
+            if stock is None or pd.isna(stock):
+                stock_val = 0
+                stock_display = "N/A"
+            else:
+                try:
+                    stock_val = int(stock)
+                    stock_display = str(stock_val)
+                except:
+                    stock_val = 0
+                    stock_display = "Invalid"
+            
+            # Determine Status
+            if stock_val < 20:
+                status = "Low Stock"
+                low_stock_items.append(row['product_name'])
+                status_style = {"color": "#ff6b6b", "fontWeight": "bold"} # Reddish for alert
+            else:
+                status = "Normal"
+                status_style = {}
+                
+            table_rows.append(
+                html.Tr(
+                    [
+                        html.Td(row['product_name']),
+                        html.Td(stock_display),
+                        html.Td(status, style=status_style),
+                    ]
+                )
+            )
+            
+        table_content = dbc.Table(
+            [
+                html.Thead(
+                    html.Tr(
+                        [
+                            html.Th("Product"),
+                            html.Th("Stock"),
+                            html.Th("Status"),
+                        ]
+                    )
+                ),
+                html.Tbody(table_rows),
+            ],
+            bordered=True,
+            striped=True,
+            hover=True,
+            responsive=True,
+            style={"backgroundColor": "#fffaf3", "color": "#3d2f25"},
+        )
+        
+        # --- Build Low Stock List ---
+        if low_stock_items:
+            low_stock_content = html.Ul(
+                [html.Li(f"{item}") for item in low_stock_items],
+                style={"marginLeft": "1rem"}
+            )
+        else:
+            low_stock_content = html.P("All stock levels are healthy!", style={"color": "#a8e6cf"})
+
+    return greeting, table_content, low_stock_content
