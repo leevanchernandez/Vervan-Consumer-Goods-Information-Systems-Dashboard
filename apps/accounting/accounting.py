@@ -27,57 +27,59 @@ def fetch_orders():
     return df
 
 # === Layout ===
-layout = dbc.Container(
-    [
-        makeNavbar(user_role="owner"),
+# === Layout ===
+def layout(user_role="owner"):
+    return dbc.Container(
+        [
+            makeNavbar(user_role=user_role),
 
-        # === MAIN CARD ===
-        dbc.Card(
-            dbc.CardBody(
-                [
-                    # --- Header Row ---
-                    dbc.Row(
-                        [
-                            dbc.Col(html.H2("Manage Orders", className="m-0"), width="auto"),
-                            dbc.Col(
-                                dbc.Button(
-                                    "Log New Order",
-                                    href="/accounting/order",
-                                    id="log-order-btn",
-                                    className="add-edit-btn",
+            # === MAIN CARD ===
+            dbc.Card(
+                dbc.CardBody(
+                    [
+                        # --- Header Row ---
+                        dbc.Row(
+                            [
+                                dbc.Col(html.H2("Manage Orders", className="m-0"), width="auto"),
+                                dbc.Col(
+                                    dbc.Button(
+                                        "Log New Order",
+                                        href="/accounting/order",
+                                        id="log-order-btn",
+                                        className="add-edit-btn",
+                                    ),
+                                    width="auto",
+                                    className="ms-auto text-end",
                                 ),
-                                width="auto",
-                                className="ms-auto text-end",
-                            ),
-                        ],
-                        align="center",
-                        className="mb-4",
-                    ),
+                            ],
+                            align="center",
+                            className="mb-4",
+                        ),
 
-                    # --- Search Input ---
-                    html.Div(
-                        [
-                            html.Label("Filter Orders", className="mb-2 search-label"),
-                            dbc.Input(
-                                id="order-search-input",
-                                type="text",
-                                placeholder="Can filter by order status, order ID, product name, etc",
-                                className="supplier-search-input mb-4",
-                            ),
-                        ],
-                        className="search-container",
-                    ),
+                        # --- Search Input ---
+                        html.Div(
+                            [
+                                html.Label("Filter Orders", className="mb-2 search-label"),
+                                dbc.Input(
+                                    id="order-search-input",
+                                    type="text",
+                                    placeholder="Can filter by order status, order ID, product name, etc",
+                                    className="supplier-search-input mb-4",
+                                ),
+                            ],
+                            className="search-container",
+                        ),
 
-                    # --- Table Container (dynamic) ---
-                    html.Div(id="order-table-container"),
-                ]
+                        # --- Table Container (dynamic) ---
+                        html.Div(id="order-table-container"),
+                    ]
+                ),
+                className="inventory-card",
             ),
-            className="inventory-card",
-        ),
-    ],
-    fluid=True,
-    style={"padding": "2rem"},
-)
+        ],
+        fluid=True,
+        style={"padding": "2rem"},
+    )
 
 # === Callback to update order table dynamically ===
 @app.callback(

@@ -38,40 +38,89 @@ def displaypage(pathname, user_role):
 
     layout = None
     
+    error_403 = html.Div([
+        html.H2("You do not have access to this page, try contacting the owner if this is a mistake", className="text-danger text-center")
+    ], className="p-5")
+
     if pathname == '/home' or pathname == "/":
         layout = home.layout
     elif pathname == '/login':
         layout = login.layout
     elif pathname == '/adduser':
-        layout = adduser.layout
+        if user_role == 'owner':
+            layout = adduser.layout
+        else:
+            return error_403
     elif pathname == '/ownerdashboard':
-        layout = ownerdashboard.layout
+        if user_role == 'owner':
+            layout = ownerdashboard.layout
+        else:
+            return error_403
     elif pathname == '/reports':
-        layout = reports.layout
+        if user_role == 'owner':
+            layout = reports.layout
+        else:
+            return error_403
     elif pathname == '/inventory':
-        layout = inventory.layout
+        if user_role in ['owner', 'inventory']:
+            layout = inventory.layout
+        else:
+            return error_403
     elif pathname == '/inventory/supplier':
-        layout = inventory_supplier.layout
+        if user_role in ['owner', 'inventory']:
+            layout = inventory_supplier.layout
+        else:
+            return error_403
     elif pathname == '/inventory/supplier/edit':
-        layout = supplier_edit.layout
+        if user_role in ['owner', 'inventory']:
+            layout = supplier_edit.layout
+        else:
+            return error_403
     elif pathname == '/inventory/products':
-        layout = inventory_products.layout
+        if user_role in ['owner', 'inventory']:
+            layout = inventory_products.layout
+        else:
+            return error_403
     elif pathname == '/inventory/products/add':
-        layout = products_add.layout
+        if user_role in ['owner', 'inventory']:
+            layout = products_add.layout
+        else:
+            return error_403
     elif pathname == '/inventory/products/edit':
-        layout = products_edit.layout
+        if user_role in ['owner', 'inventory']:
+            layout = products_edit.layout
+        else:
+            return error_403
     elif pathname == '/inventorydashboard':
-        layout = inventorydashboard.layout
+        if user_role in ['owner', 'inventory']:
+            layout = inventorydashboard.layout
+        else:
+            return error_403
     elif pathname == '/accountingdashboard':
-        layout = accountingdashboard.layout
+        if user_role in ['owner', 'accounting']:
+            layout = accountingdashboard.layout
+        else:
+            return error_403
     elif pathname == '/accounting':
-        layout = accounting.layout
+        if user_role in ['owner', 'accounting']:
+            layout = accounting.layout
+        else:
+            return error_403
     elif pathname == '/accounting/order':
-        layout = accounting_order.layout
+        if user_role in ['owner', 'accounting']:
+            layout = accounting_order.layout
+        else:
+            return error_403
     elif pathname == '/accounting/order/edit':
-        layout = order_edit.layout
+        if user_role in ['owner', 'accounting']:
+            layout = order_edit.layout
+        else:
+            return error_403
     elif pathname == '/transactions':
-        layout = transactions.layout
+        if user_role in ['owner', 'accounting']:
+            layout = transactions.layout
+        else:
+            return error_403
     else:
         return html.H1("404: Page not found", className="text-center text-danger")
     

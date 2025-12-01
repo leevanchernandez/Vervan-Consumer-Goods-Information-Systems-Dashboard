@@ -30,80 +30,81 @@ def fetch_suppliers():
     return df
 
 # === Layout ===
-layout = dbc.Container(
-    [
-        makeNavbar(user_role="owner"),
+def layout(user_role="owner"):
+    return dbc.Container(
+        [
+            makeNavbar(user_role=user_role),
 
-        # === Top tab pill navigation ===
-        dbc.Row(
-            dbc.ButtonGroup(
-                [
-                    dbc.Button(
-                        "Suppliers Tab",
-                        href="/inventory",
-                        id="suppliers-tab",
-                        className="tab-pill-left active-tab",
-                    ),
-                    dbc.Button(
-                        "Products Tab",
-                        href="/inventory/products",
-                        id="products-tab",
-                        className="tab-pill-right",
-                    ),
-                ],
-                className="tab-pill-group",
+            # === Top tab pill navigation ===
+            dbc.Row(
+                dbc.ButtonGroup(
+                    [
+                        dbc.Button(
+                            "Suppliers Tab",
+                            href="/inventory",
+                            id="suppliers-tab",
+                            className="tab-pill-left active-tab",
+                        ),
+                        dbc.Button(
+                            "Products Tab",
+                            href="/inventory/products",
+                            id="products-tab",
+                            className="tab-pill-right",
+                        ),
+                    ],
+                    className="tab-pill-group",
+                ),
+                className="mb-3 justify-content-start",
             ),
-            className="mb-3 justify-content-start",
-        ),
 
-        # === Main card ===
-        dbc.Card(
-            dbc.CardBody(
-                [
-                    # --- Header Row ---
-                    dbc.Row(
-                        [
-                            dbc.Col(html.H2("Manage Suppliers", className="m-0"), width="auto"),
-                            dbc.Col(
-                                dbc.Button(
-                                    "Add Supplier Details",
-                                    href="/inventory/supplier",
-                                    id="add-edit-btn",
-                                    className="add-edit-btn",
+            # === Main card ===
+            dbc.Card(
+                dbc.CardBody(
+                    [
+                        # --- Header Row ---
+                        dbc.Row(
+                            [
+                                dbc.Col(html.H2("Manage Suppliers", className="m-0"), width="auto"),
+                                dbc.Col(
+                                    dbc.Button(
+                                        "Add Supplier Details",
+                                        href="/inventory/supplier",
+                                        id="add-edit-btn",
+                                        className="add-edit-btn",
+                                    ),
+                                    width="auto",
+                                    className="ms-auto text-end",
                                 ),
-                                width="auto",
-                                className="ms-auto text-end",
-                            ),
-                        ],
-                        align="center",
-                        className="mb-4",
-                    ),
+                            ],
+                            align="center",
+                            className="mb-4",
+                        ),
 
-                    # --- Search Input ---
-                    html.Div(
-                        [
-                            html.Label("Search Suppliers", className="mb-2 search-label"),
-                            dbc.Input(
-                                id="supplier-search-input",
-                                type="text",
-                                placeholder="Enter supplier name...",
-                                className="supplier-search-input mb-4",
-                            ),
-                        ],
-                        className="search-container",
-                    ),
+                        # --- Search Input ---
+                        html.Div(
+                            [
+                                html.Label("Search Suppliers", className="mb-2 search-label"),
+                                dbc.Input(
+                                    id="supplier-search-input",
+                                    type="text",
+                                    placeholder="Enter supplier name...",
+                                    className="supplier-search-input mb-4",
+                                ),
+                            ],
+                            className="search-container",
+                        ),
 
-                    # --- Table Container (dynamic) ---
-                    html.Div(id="supplier-table-container"),
-                ]
+                        # --- Table Container (dynamic) ---
+                        html.Div(id="supplier-table-container"),
+                    ]
+                ),
+                className="inventory-card",
+                style={"backgroundColor": "#3d2f25", "borderRadius": "2rem"},
             ),
-            className="inventory-card",
-            style={"backgroundColor": "#3d2f25", "borderRadius": "2rem"},
-        ),
-    ],
-    fluid=True,
-    style={"padding": "2rem"},
-)
+        ],
+        fluid=True,
+        style={"padding": "2rem"},
+    )
 
 # === Callback to update supplier table dynamically based on search input ===
 @app.callback(
@@ -155,7 +156,6 @@ def update_supplier_table(search_value):
                 ]
             )
         )
-
 
     # Return the table
     return dbc.Table(

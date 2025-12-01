@@ -18,79 +18,80 @@ def fetch_products():
     return df
 
 # === Layout ===
-layout = dbc.Container(
-    [
-        makeNavbar(user_role="owner"),
+def layout(user_role="owner"):
+    return dbc.Container(
+        [
+            makeNavbar(user_role=user_role),
 
-        # === TOP TAB PILL ===
-        dbc.Row(
-            dbc.ButtonGroup(
-                [
-                    dbc.Button(
-                        "Suppliers Tab",
-                        href="/inventory",
-                        id="suppliers-tab",
-                        className="tab-pill-left",
-                    ),
-                    dbc.Button(
-                        "Products Tab",
-                        href="/inventory/products",
-                        id="products-tab",
-                        className="tab-pill-right active-tab",
-                    ),
-                ],
-                className="tab-pill-group",
+            # === TOP TAB PILL ===
+            dbc.Row(
+                dbc.ButtonGroup(
+                    [
+                        dbc.Button(
+                            "Suppliers Tab",
+                            href="/inventory",
+                            id="suppliers-tab",
+                            className="tab-pill-left",
+                        ),
+                        dbc.Button(
+                            "Products Tab",
+                            href="/inventory/products",
+                            id="products-tab",
+                            className="tab-pill-right active-tab",
+                        ),
+                    ],
+                    className="tab-pill-group",
+                ),
+                className="mb-4 justify-content-start",
             ),
-            className="mb-4 justify-content-start",
-        ),
 
-        # === MAIN CARD ===
-        dbc.Card(
-            dbc.CardBody(
-                [
-                    # --- Header Row ---
-                    dbc.Row(
-                        [
-                            dbc.Col(html.H2("Manage Products", className="m-0"), width="auto"),
-                            dbc.Col(
-                                dbc.Button(
-                                    "Add Product Details",
-                                    href="/inventory/products/add",
-                                    id="add-btn",
-                                    className="add-edit-btn",
+            # === MAIN CARD ===
+            dbc.Card(
+                dbc.CardBody(
+                    [
+                        # --- Header Row ---
+                        dbc.Row(
+                            [
+                                dbc.Col(html.H2("Manage Products", className="m-0"), width="auto"),
+                                dbc.Col(
+                                    dbc.Button(
+                                        "Add Product Details",
+                                        href="/inventory/products/add",
+                                        id="add-btn",
+                                        className="add-edit-btn",
+                                    ),
+                                    width="auto",
+                                    className="ms-auto text-end",
                                 ),
-                                width="auto",
-                                className="ms-auto text-end",
-                            ),
-                        ],
-                        align="center",
-                        className="mb-4",
-                    ),
+                            ],
+                            align="center",
+                            className="mb-4",
+                        ),
 
-                    # --- Search Input ---
-                    html.Div(
-                        [
-                            html.Label("Search Product", className="mb-2 search-label"),
-                            dbc.Input(
-                                id="product-search-input",
-                                type="text",
-                                placeholder="Enter product name...",
-                                className="supplier-search-input mb-4",
-                            ),
-                        ],
-                        className="search-container",
-                    ),
+                        # --- Search Input ---
+                        html.Div(
+                            [
+                                html.Label("Search Product", className="mb-2 search-label"),
+                                dbc.Input(
+                                    id="product-search-input",
+                                    type="text",
+                                    placeholder="Enter product name...",
+                                    className="supplier-search-input mb-4",
+                                ),
+                            ],
+                            className="search-container",
+                        ),
 
-                    # --- Table Container (dynamic) ---
-                    html.Div(id="product-table-container"),
-                ]
+                        # --- Table Container (dynamic) ---
+                        html.Div(id="product-table-container"),
+                    ]
+                ),
+                className="inventory-card",
             ),
-            className="inventory-card",
-        ),
-    ],
-    fluid=True,
-    style={"padding": "2rem"},
-)
+        ],
+        fluid=True,
+        style={"padding": "2rem"},
+    )
 
 # === Callback to populate table dynamically ===
 @app.callback(
