@@ -57,6 +57,15 @@ def makeNavbar(user_role="public"):
             centered=True,
         )
         
+        # Determine dashboard link based on role
+        dashboard_href = "/home"
+        if user_role == "owner":
+            dashboard_href = "/ownerdashboard"
+        elif user_role == "inventory":
+            dashboard_href = "/inventorydashboard"
+        elif user_role == "accounting":
+            dashboard_href = "/accountingdashboard"
+
         logo_element = html.Div(
             dcc.Link(
                 html.Img(
@@ -69,7 +78,7 @@ def makeNavbar(user_role="public"):
                         "cursor": "pointer",
                     },
                 ),
-                href="/ownerdashboard",
+                href=dashboard_href,
             ),
             style={"display": "flex", "alignItems": "center"},
         )
