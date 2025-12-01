@@ -9,10 +9,10 @@ from apps.dbconnect import getDataFromDB, modifyDB
 from datetime import date
 import urllib.parse
 
-def layout(user_role="owner"):
+def layout(user_role="owner", pathname=None):
     return dbc.Container(
         [
-            makeNavbar(user_role=user_role),
+            makeNavbar(user_role=user_role, pathname=pathname),
             dcc.Location(id='url_order_edit', refresh=False),
             dcc.Store(id='order_id_store', storage_type='session'),
             dcc.Store(id='edit_product_options_store'),

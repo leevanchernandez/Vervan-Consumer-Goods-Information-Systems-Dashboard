@@ -125,7 +125,7 @@ def displaypage(pathname, user_role):
         return html.H1("404: Page not found", className="text-center text-danger")
     
     if callable(layout):
-        return layout(user_role=user_role)
+        return layout(user_role=user_role, pathname=pathname)
     else:
         return layout
 

@@ -6,10 +6,10 @@ from app import app
 from apps.commonmodules import makeNavbar
 from apps.dbconnect import getDataFromDB, modifyDB
 
-def layout(user_role="owner"):
+def layout(user_role="owner", pathname=None):
     return dbc.Container(
         [
-            makeNavbar(user_role=user_role),
+            makeNavbar(user_role=user_role, pathname=pathname),
             # === Page Title ===
             html.H1("Product Details", className="supplier-details-title mb-5"),
 

@@ -14,10 +14,10 @@ def fetch_product_names():
     return [{"label": name, "value": name} for name in df["Product Name"].tolist()]
 
 # === Layout ===
-def layout(user_role="owner"):
+def layout(user_role="owner", pathname=None):
     return dbc.Container(
         [
-            makeNavbar(user_role=user_role),
+            makeNavbar(user_role=user_role, pathname=pathname),
             html.H1("Supplier Details", className="supplier-details-title mb-5"),
 
             dbc.Card(

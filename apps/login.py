@@ -14,11 +14,11 @@ card_color = "#faf3e7",
 accent_color = "#7a5d60",
 text_color = "#c69a9a"
 
-def layout(user_role="public"):
+def layout(user_role="public", pathname=None):
     return html.Div(
         [
             # Navbar
-            makeNavbar(user_role=user_role),
+            makeNavbar(user_role=user_role, pathname=pathname),
 
             # Main Container
             dbc.Container(

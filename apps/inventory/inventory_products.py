@@ -18,10 +18,10 @@ def fetch_products():
     return df
 
 # === Layout ===
-def layout(user_role="owner"):
+def layout(user_role="owner", pathname=None):
     return dbc.Container(
         [
-            makeNavbar(user_role=user_role),
+            makeNavbar(user_role=user_role, pathname=pathname),
 
             # === TOP TAB PILL ===
             dbc.Row(

@@ -9,10 +9,10 @@ from app import app
 from apps.commonmodules import makeNavbar
 
 # Homepage layout
-def layout(user_role="public"):
+def layout(user_role="public", pathname=None):
     return html.Div(
         [
-            makeNavbar(user_role=user_role),
+            makeNavbar(user_role=user_role, pathname=pathname),
 
             # Page Content
             dbc.Container(

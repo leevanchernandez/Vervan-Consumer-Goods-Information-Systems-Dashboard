@@ -1,7 +1,13 @@
 import dash_bootstrap_components as dbc
 from dash import html, dcc
 
-def makeNavbar(user_role="public"):
+def makeNavbar(user_role="public", pathname=None):
+    # Determine active state for Inventory
+    inventory_active = False
+    if pathname:
+        if pathname == "/inventory" or pathname.startswith("/inventory/"):
+            inventory_active = True
+
     # === Define nav items by role ===
     if user_role == "public":
         nav_items = [
@@ -12,7 +18,7 @@ def makeNavbar(user_role="public"):
         nav_items = [
             dbc.NavLink("Dashboard", href="/ownerdashboard", active="exact", className="nav-pill"),
             dbc.NavLink("Reports", href="/reports", active="exact", className="nav-pill"),
-            dbc.NavLink("Inventory", href="/inventory", active="exact", className="nav-pill"),
+            dbc.NavLink("Inventory", href="/inventory", active=inventory_active, className="nav-pill"),
             dbc.NavLink("Accounting", href="/accounting", active="exact", className="nav-pill"),
             dbc.NavLink("Transactions", href="/transactions", active="exact", className="nav-pill"),
             dbc.NavLink("Add User", href="/adduser", active="exact", className="nav-pill"),
@@ -20,7 +26,7 @@ def makeNavbar(user_role="public"):
     elif user_role == "inventory":
         nav_items = [
             dbc.NavLink("Dashboard", href="/inventorydashboard", active="exact", className="nav-pill"),
-            dbc.NavLink("Inventory", href="/inventory", active="exact", className="nav-pill"),
+            dbc.NavLink("Inventory", href="/inventory", active=inventory_active, className="nav-pill"),
         ]
     elif user_role == "accounting":
         nav_items = [

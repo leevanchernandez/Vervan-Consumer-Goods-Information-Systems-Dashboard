@@ -6,10 +6,10 @@ from apps.commonmodules import makeNavbar
 from apps.dbconnect import getDataFromDB
 from datetime import date
 
-def layout(user_role="owner"):
+def layout(user_role="owner", pathname=None):
     return dbc.Container(
         [
-            makeNavbar(user_role=user_role),
+            makeNavbar(user_role=user_role, pathname=pathname),
             html.H1("Transaction History", className="mb-4"),
             
             dbc.Row(

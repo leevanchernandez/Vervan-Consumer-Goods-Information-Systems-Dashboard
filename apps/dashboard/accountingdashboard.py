@@ -6,10 +6,10 @@ from app import app
 from apps.commonmodules import makeNavbar
 from apps.dbconnect import getDataFromDB
 
-def layout(user_role="accounting"):
+def layout(user_role="accounting", pathname=None):
     return dbc.Container(
         [
-            makeNavbar(user_role=user_role),
+            makeNavbar(user_role=user_role, pathname=pathname),
             # Greeting
             html.H1(
                 "Hello!", 

@@ -7,10 +7,10 @@ from apps.commonmodules import makeNavbar
 from apps.dbconnect import getDataFromDB, modifyDB
 from datetime import date
 
-def layout(user_role="owner"):
+def layout(user_role="owner", pathname=None):
     return dbc.Container(
         [
-            makeNavbar(user_role=user_role),
+            makeNavbar(user_role=user_role, pathname=pathname),
             
             # Store to keep track of product options to avoid re-fetching constantly if needed, 
             # but for now we can just fetch in the row adder or update existing rows. 
