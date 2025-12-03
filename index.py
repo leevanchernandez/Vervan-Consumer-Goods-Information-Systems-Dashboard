@@ -47,7 +47,7 @@ def displaypage(pathname, user_role):
     elif pathname == '/login':
         layout = login.layout
     elif pathname == '/adduser':
-        if user_role == 'owner':
+        if user_role in ['owner', 'inventory', 'accounting', 'public']:
             layout = adduser.layout
         else:
             return error_403
