@@ -2,8 +2,9 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import html, dcc, Input, Output, State
 from app import app
-from apps.commonmodules import makeNavbar
+from apps.commonmodules import makeNavbar, create_pagination_controls
 from apps.dbconnect import getDataFromDB
+import math
 
 # --- Helper to fetch orders from DB ---
 def fetch_orders():
@@ -31,6 +32,7 @@ def fetch_orders():
 def layout(user_role="owner", pathname=None):
     return dbc.Container(
         [
+            dcc.Store(id="order-page-store", data=1),
             makeNavbar(user_role=user_role, pathname=pathname),
 
             # === MAIN CARD ===
@@ -72,6 +74,12 @@ def layout(user_role="owner", pathname=None):
 
                         # --- Table Container (dynamic) ---
                         html.Div(id="order-table-container"),
+
+                        # --- Pagination Controls ---
+                        html.Div(
+                            create_pagination_controls(1, 1, "order"),
+                            id="order-pagination-container"
+                        )
                     ]
                 ),
                 className="inventory-card",
@@ -83,10 +91,18 @@ def layout(user_role="owner", pathname=None):
 
 # === Callback to update order table dynamically ===
 @app.callback(
-    Output("order-table-container", "children"),
-    Input("order-search-input", "value")
+    [Output("order-table-container", "children"),
+     Output("order-pagination-container", "children"),
+     Output("order-page-store", "data")],
+    [Input("order-search-input", "value"),
+     Input("order-prev-btn", "n_clicks"),
+     Input("order-next-btn", "n_clicks")],
+    [State("order-page-store", "data")]
 )
-def update_order_table(search_value):
+def update_order_table(search_value, prev_clicks, next_clicks, current_page):
+    ctx = dash.callback_context
+    triggered_id = ctx.triggered[0]["prop_id"].split(".")[0] if ctx.triggered else None
+
     df_orders = fetch_orders()
 
     if search_value:
@@ -102,10 +118,31 @@ def update_order_table(search_value):
         ]
 
     if df_orders.empty:
-        return dbc.Alert("No orders found.", color="warning")
+        return dbc.Alert("No orders found.", color="warning"), create_pagination_controls(1, 1, "order"), 1
+
+    # Pagination Logic
+    rows_per_page = 12
+    total_rows = len(df_orders)
+    total_pages = math.ceil(total_rows / rows_per_page) if total_rows > 0 else 1
+
+    # Handle page changes
+    if triggered_id == "order-search-input":
+        current_page = 1
+    elif triggered_id == "order-prev-btn":
+        current_page = max(1, current_page - 1)
+    elif triggered_id == "order-next-btn":
+        current_page = min(total_pages, current_page + 1)
+    
+    # Ensure current_page is valid
+    current_page = max(1, min(current_page, total_pages))
+
+    # Slice Data
+    start_idx = (current_page - 1) * rows_per_page
+    end_idx = start_idx + rows_per_page
+    df_sliced = df_orders.iloc[start_idx:end_idx]
 
     table_rows = []
-    for row in df_orders.to_dict("records"):
+    for row in df_sliced.to_dict("records"):
         table_rows.append(
             html.Tr(
                 [
@@ -117,7 +154,7 @@ def update_order_table(search_value):
                     html.Td(row["status_name"]),
                     html.Td(
                         dbc.Button(
-                            "Update",
+                            "Edit",
                             href=f"/accounting/order/edit?id={row['order_id']}",
                             color="secondary",
                             size="sm",
@@ -136,7 +173,7 @@ def update_order_table(search_value):
             )
         )
 
-    return dbc.Table(
+    table = dbc.Table(
         [
             html.Thead(
                 html.Tr(
@@ -165,3 +202,7 @@ def update_order_table(search_value):
             "backgroundColor": "#faf3e7",
         },
     )
+
+    pagination = create_pagination_controls(current_page, total_pages, "order")
+
+    return table, pagination, current_page

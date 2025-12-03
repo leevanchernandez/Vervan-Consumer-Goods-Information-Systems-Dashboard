@@ -2,10 +2,11 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import html, dcc
 from app import app
-from apps.commonmodules import makeNavbar
+from apps.commonmodules import makeNavbar, create_pagination_controls
 from dash.dependencies import Input, Output, State
 from apps.dbconnect import getDataFromDB
 import pandas as pd
+import math
 
 # === Function to fetch supplier data from the database ===
 def fetch_suppliers():
@@ -33,6 +34,7 @@ def fetch_suppliers():
 def layout(user_role="owner", pathname=None):
     return dbc.Container(
         [
+            dcc.Store(id="supplier-page-store", data=1),
             makeNavbar(user_role=user_role, pathname=pathname),
 
             # === Top tab pill navigation ===
@@ -96,6 +98,12 @@ def layout(user_role="owner", pathname=None):
 
                         # --- Table Container (dynamic) ---
                         html.Div(id="supplier-table-container"),
+
+                        # --- Pagination Controls ---
+                        html.Div(
+                            create_pagination_controls(1, 1, "supplier"),
+                            id="supplier-pagination-container"
+                        )
                     ]
                 ),
                 className="inventory-card",
@@ -108,10 +116,18 @@ def layout(user_role="owner", pathname=None):
 
 # === Callback to update supplier table dynamically based on search input ===
 @app.callback(
-    Output("supplier-table-container", "children"),
-    Input("supplier-search-input", "value")
+    [Output("supplier-table-container", "children"),
+     Output("supplier-pagination-container", "children"),
+     Output("supplier-page-store", "data")],
+    [Input("supplier-search-input", "value"),
+     Input("supplier-prev-btn", "n_clicks"),
+     Input("supplier-next-btn", "n_clicks")],
+    [State("supplier-page-store", "data")]
 )
-def update_supplier_table(search_value):
+def update_supplier_table(search_value, prev_clicks, next_clicks, current_page):
+    ctx = dash.callback_context
+    triggered_id = ctx.triggered[0]["prop_id"].split(".")[0] if ctx.triggered else None
+
     # Fetch supplier data
     df_suppliers = fetch_suppliers()
 
@@ -121,12 +137,32 @@ def update_supplier_table(search_value):
         df_suppliers = df_suppliers[df_suppliers["Supplier Name"].str.lower().str.contains(search_value_lower)]
 
     if df_suppliers.empty:
-        return dbc.Alert("No suppliers found.", color="warning")
+        return dbc.Alert("No suppliers found.", color="warning"), create_pagination_controls(1, 1, "supplier"), 1
+
+    # Pagination Logic
+    rows_per_page = 12
+    total_rows = len(df_suppliers)
+    total_pages = math.ceil(total_rows / rows_per_page) if total_rows > 0 else 1
+
+    # Handle page changes
+    if triggered_id == "supplier-search-input":
+        current_page = 1
+    elif triggered_id == "supplier-prev-btn":
+        current_page = max(1, current_page - 1)
+    elif triggered_id == "supplier-next-btn":
+        current_page = min(total_pages, current_page + 1)
+    
+    # Ensure current_page is valid
+    current_page = max(1, min(current_page, total_pages))
+
+    # Slice Data
+    start_idx = (current_page - 1) * rows_per_page
+    end_idx = start_idx + rows_per_page
+    df_sliced = df_suppliers.iloc[start_idx:end_idx]
 
     # Generate table rows
     table_rows = []
-# inside update_supplier_table callback
-    for _, row in df_suppliers.iterrows():
+    for _, row in df_sliced.iterrows():
         product_id_param = f"&product_id={int(row['product_id'])}" if pd.notna(row['product_id']) else ""
         table_rows.append(
             html.Tr(
@@ -158,7 +194,7 @@ def update_supplier_table(search_value):
         )
 
     # Return the table
-    return dbc.Table(
+    table = dbc.Table(
         [
             html.Thead(
                 html.Tr(
@@ -185,3 +221,7 @@ def update_supplier_table(search_value):
             "backgroundColor": "#faf3e7",
         },
     )
+
+    pagination = create_pagination_controls(current_page, total_pages, "supplier")
+
+    return table, pagination, current_page

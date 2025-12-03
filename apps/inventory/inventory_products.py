@@ -1,9 +1,10 @@
 import dash
 import dash_bootstrap_components as dbc
-from dash import html, dcc, Input, Output
+from dash import html, dcc, Input, Output, State
 from app import app
-from apps.commonmodules import makeNavbar
+from apps.commonmodules import makeNavbar, create_pagination_controls
 from apps.dbconnect import getDataFromDB  # Make sure you have a function to fetch data
+import math
 
 # === Function to fetch products from DB ===
 def fetch_products():
@@ -21,6 +22,7 @@ def fetch_products():
 def layout(user_role="owner", pathname=None):
     return dbc.Container(
         [
+            dcc.Store(id="product-page-store", data=1),
             makeNavbar(user_role=user_role, pathname=pathname),
 
             # === TOP TAB PILL ===
@@ -84,6 +86,12 @@ def layout(user_role="owner", pathname=None):
 
                         # --- Table Container (dynamic) ---
                         html.Div(id="product-table-container"),
+
+                        # --- Pagination Controls ---
+                        html.Div(
+                            create_pagination_controls(1, 1, "product"),
+                            id="product-pagination-container"
+                        )
                     ]
                 ),
                 className="inventory-card",
@@ -95,10 +103,18 @@ def layout(user_role="owner", pathname=None):
 
 # === Callback to populate table dynamically ===
 @app.callback(
-    Output("product-table-container", "children"),
-    Input("product-search-input", "value")
+    [Output("product-table-container", "children"),
+     Output("product-pagination-container", "children"),
+     Output("product-page-store", "data")],
+    [Input("product-search-input", "value"),
+     Input("product-prev-btn", "n_clicks"),
+     Input("product-next-btn", "n_clicks")],
+    [State("product-page-store", "data")]
 )
-def update_product_table(search_value):
+def update_product_table(search_value, prev_clicks, next_clicks, current_page):
+    ctx = dash.callback_context
+    triggered_id = ctx.triggered[0]["prop_id"].split(".")[0] if ctx.triggered else None
+
     df_products = fetch_products()
 
     # Filter if search value provided
@@ -107,11 +123,32 @@ def update_product_table(search_value):
         df_products = df_products[df_products["product_name"].str.lower().str.contains(search_value_lower)]
 
     if df_products.empty:
-        return dbc.Alert("No products found.", color="warning")
+        return dbc.Alert("No products found.", color="warning"), create_pagination_controls(1, 1, "product"), 1
+
+    # Pagination Logic
+    rows_per_page = 12
+    total_rows = len(df_products)
+    total_pages = math.ceil(total_rows / rows_per_page) if total_rows > 0 else 1
+
+    # Handle page changes
+    if triggered_id == "product-search-input":
+        current_page = 1
+    elif triggered_id == "product-prev-btn":
+        current_page = max(1, current_page - 1)
+    elif triggered_id == "product-next-btn":
+        current_page = min(total_pages, current_page + 1)
+    
+    # Ensure current_page is valid
+    current_page = max(1, min(current_page, total_pages))
+
+    # Slice Data
+    start_idx = (current_page - 1) * rows_per_page
+    end_idx = start_idx + rows_per_page
+    df_sliced = df_products.iloc[start_idx:end_idx]
 
     # Generate table rows
     table_rows = []
-    for _, row in df_products.iterrows():
+    for _, row in df_sliced.iterrows():
         table_rows.append(
             html.Tr(
                 [
@@ -143,7 +180,7 @@ def update_product_table(search_value):
             )
         )
 
-    return dbc.Table(
+    table = dbc.Table(
         [html.Thead(
             html.Tr([
                 html.Th("Product Name"),
@@ -168,4 +205,8 @@ def update_product_table(search_value):
             "backgroundColor": "#faf3e7",
         }
     )
+
+    pagination = create_pagination_controls(current_page, total_pages, "product")
+
+    return table, pagination, current_page
 

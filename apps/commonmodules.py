@@ -118,3 +118,43 @@ def makeNavbar(user_role="public", pathname=None):
         return html.Div([navbar, logout_modal])
     else:
         return navbar
+
+def create_pagination_controls(current_page, total_pages, id_prefix):
+    return dbc.Row(
+        [
+            dbc.Col(
+                dbc.Button(
+                    "Previous", 
+                    id=f"{id_prefix}-prev-btn", 
+                    n_clicks=0, 
+                    disabled=(current_page <= 1),
+                    color="secondary",
+                    outline=True,
+                    className="me-2"
+                ),
+                width="auto"
+            ),
+            dbc.Col(
+                html.Span(
+                    f"Page {current_page} of {total_pages}", 
+                    className="align-middle fw-bold",
+                    style={"color": "#7a5d60"}
+                ),
+                width="auto",
+                className="d-flex align-items-center"
+            ),
+            dbc.Col(
+                dbc.Button(
+                    "Next", 
+                    id=f"{id_prefix}-next-btn", 
+                    n_clicks=0, 
+                    disabled=(current_page >= total_pages),
+                    color="secondary",
+                    outline=True,
+                    className="ms-2"
+                ),
+                width="auto"
+            ),
+        ],
+        className="mt-3 justify-content-center align-items-center"
+    )
