@@ -117,7 +117,7 @@ def update_order_table(search_value):
                     html.Td(row["status_name"]),
                     html.Td(
                         dbc.Button(
-                            "Edit",
+                            "Update",
                             href=f"/accounting/order/edit?id={row['order_id']}",
                             color="secondary",
                             size="sm",
