@@ -1,6 +1,7 @@
 body {
   background-color: #fffaf3;
 }
+
 /* Global horizontal padding for all page containers */
 .dash-bootstrap {
   padding-left: 3rem !important;
@@ -13,22 +14,38 @@ body {
    ====================== */
 
 .nav-pill {
-  display: inline-flex;               /* center text */
-  align-items: center;                /* vertical center */
-  justify-content: center;            /* horizontal center */
-  width: 120px;                       /* uniform width */
-  height: 40px;                       /* uniform height */
-  border-radius: 999px;               /* pill shape */
-  text-decoration: none;              /* no underline */
-  color: #7a5d60;                     /* purple text */
-  background-color: #fffaf3;          /* off-white bg */
-  border: 1.5px solid #7a5d60;        /* purple outline */
-  font-weight: 500;                   /* medium text */
-  transition: all 0.2s ease-in-out;   /* smooth hover/active */
-  margin: 0 6px;                      /* spacing between pills */
-  white-space: nowrap;                /* prevent wrap */
-  overflow: hidden;                   /* hide overflow */
-  text-overflow: ellipsis;            /* add “...” if long */
+  display: inline-flex;
+  /* center text */
+  align-items: center;
+  /* vertical center */
+  justify-content: center;
+  /* horizontal center */
+  width: 120px;
+  /* uniform width */
+  height: 40px;
+  /* uniform height */
+  border-radius: 999px;
+  /* pill shape */
+  text-decoration: none;
+  /* no underline */
+  color: #7a5d60;
+  /* purple text */
+  background-color: #fffaf3;
+  /* off-white bg */
+  border: 1.5px solid #7a5d60;
+  /* purple outline */
+  font-weight: 500;
+  /* medium text */
+  transition: all 0.2s ease-in-out;
+  /* smooth hover/active */
+  margin: 0 6px;
+  /* spacing between pills */
+  white-space: nowrap;
+  /* prevent wrap */
+  overflow: hidden;
+  /* hide overflow */
+  text-overflow: ellipsis;
+  /* add “...” if long */
 }
 
 .nav-pill:hover {
@@ -40,6 +57,18 @@ body {
   background-color: #7a5d60;
   color: #fffaf3;
 }
+
+.nav-pill:focus {
+  color: #7a5d60;
+  background-color: #fffaf3;
+  outline: none;
+}
+
+.nav-pill.active:focus {
+  color: #fffaf3;
+  background-color: #7a5d60;
+}
+
 .navbar-custom {
   background-color: transparent !important;
   margin-bottom: 1rem;
@@ -126,7 +155,8 @@ body {
   overflow: hidden;
   background-color: #3d2f25;
   width: auto;
-  margin-left: 0; /* ensures it stays left aligned */
+  margin-left: 0;
+  /* ensures it stays left aligned */
 }
 
 /* --- Tabs --- */
@@ -186,7 +216,8 @@ body {
 
 /* --- Search Input --- */
 .search-container {
-  text-align: left; /* left align label + input */
+  text-align: left;
+  /* left align label + input */
 }
 
 .search-label {
@@ -198,7 +229,8 @@ body {
   border-radius: 999px !important;
   background-color: #fffaf3 !important;
   color: #3d2f25 !important;
-  width: 300px !important;  /* fixed width */
+  width: 300px !important;
+  /* fixed width */
 }
 
 /* --- Card Text --- */
@@ -269,15 +301,15 @@ body {
 }
 
 .report-link {
-    cursor: pointer;
-    transition: 0.2s ease;
+  cursor: pointer;
+  transition: 0.2s ease;
 }
 
 .report-link:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-    padding-left: 0.4rem;
+  background-color: rgba(255, 255, 255, 0.15);
+  padding-left: 0.4rem;
 }
 
 .report-link-active {
-    border-left: 4px solid #faf3e7;
+  border-left: 4px solid #faf3e7;
 }

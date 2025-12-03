@@ -8,31 +8,35 @@ def makeNavbar(user_role="public", pathname=None):
         if pathname == "/inventory" or pathname.startswith("/inventory/"):
             inventory_active = True
 
+    # Helper to check active state
+    def is_active(href):
+        return pathname == href
+
     # === Define nav items by role ===
     if user_role == "public":
         nav_items = [
-            dbc.NavLink("Home", href="/home", active="exact", className="nav-pill"),
-            dbc.NavLink("Login", href="/login", active="exact", className="nav-pill"),
+            dbc.NavLink("Home", href="/home", active=is_active("/home"), className="nav-pill"),
+            dbc.NavLink("Login", href="/login", active=is_active("/login"), className="nav-pill"),
         ]
     elif user_role == "owner":
         nav_items = [
-            dbc.NavLink("Dashboard", href="/ownerdashboard", active="exact", className="nav-pill"),
-            dbc.NavLink("Reports", href="/reports", active="exact", className="nav-pill"),
+            dbc.NavLink("Dashboard", href="/ownerdashboard", active=is_active("/ownerdashboard"), className="nav-pill"),
+            dbc.NavLink("Reports", href="/reports", active=is_active("/reports"), className="nav-pill"),
             dbc.NavLink("Inventory", href="/inventory", active=inventory_active, className="nav-pill"),
-            dbc.NavLink("Accounting", href="/accounting", active="exact", className="nav-pill"),
-            dbc.NavLink("Transactions", href="/transactions", active="exact", className="nav-pill"),
-            dbc.NavLink("Add User", href="/adduser", active="exact", className="nav-pill"),
+            dbc.NavLink("Accounting", href="/accounting", active=is_active("/accounting"), className="nav-pill"),
+            dbc.NavLink("Transactions", href="/transactions", active=is_active("/transactions"), className="nav-pill"),
+            dbc.NavLink("Add User", href="/adduser", active=is_active("/adduser"), className="nav-pill"),
         ]
     elif user_role == "inventory":
         nav_items = [
-            dbc.NavLink("Dashboard", href="/inventorydashboard", active="exact", className="nav-pill"),
+            dbc.NavLink("Dashboard", href="/inventorydashboard", active=is_active("/inventorydashboard"), className="nav-pill"),
             dbc.NavLink("Inventory", href="/inventory", active=inventory_active, className="nav-pill"),
         ]
     elif user_role == "accounting":
         nav_items = [
-            dbc.NavLink("Dashboard", href="/accountingdashboard", active="exact", className="nav-pill"),
-            dbc.NavLink("Accounting", href="/accounting", active="exact", className="nav-pill"),
-            dbc.NavLink("Transactions", href="/transactions", active="exact", className="nav-pill"),
+            dbc.NavLink("Dashboard", href="/accountingdashboard", active=is_active("/accountingdashboard"), className="nav-pill"),
+            dbc.NavLink("Accounting", href="/accounting", active=is_active("/accounting"), className="nav-pill"),
+            dbc.NavLink("Transactions", href="/transactions", active=is_active("/transactions"), className="nav-pill"),
         ]
     else:
         nav_items = []
