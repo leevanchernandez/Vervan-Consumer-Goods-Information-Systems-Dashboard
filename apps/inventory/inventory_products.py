@@ -71,14 +71,21 @@ def layout(user_role="owner", pathname=None):
                         ),
 
                         # --- Search Input ---
+                        # --- Search Inputs ---
                         html.Div(
                             [
-                                html.Label("Search Product", className="mb-2 search-label"),
-                                dbc.Input(
-                                    id="product-search-input",
-                                    type="text",
-                                    placeholder="Enter product name...",
-                                    className="supplier-search-input mb-4",
+                                html.Label("Filter Products", className="mb-2 search-label"),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(dbc.Input(id="product-name-filter", placeholder="Product Name", type="text"), width=2),
+                                        dbc.Col(dbc.Input(id="brand-filter", placeholder="Brand", type="text"), width=2),
+                                        dbc.Col(dbc.Input(id="selling-price-filter", placeholder="Price", type="text"), width=1),
+                                        dbc.Col(dbc.Input(id="weight-filter", placeholder="Weight", type="text"), width=1),
+                                        dbc.Col(dbc.Input(id="description-filter", placeholder="Description", type="text"), width=2),
+                                        dbc.Col(dbc.Input(id="size-filter", placeholder="Size", type="text"), width=1),
+                                        dbc.Col(dbc.Input(id="stock-level-filter", placeholder="Stock", type="text"), width=1),
+                                    ],
+                                    className="mb-4",
                                 ),
                             ],
                             className="search-container",
@@ -106,21 +113,39 @@ def layout(user_role="owner", pathname=None):
     [Output("product-table-container", "children"),
      Output("product-pagination-container", "children"),
      Output("product-page-store", "data")],
-    [Input("product-search-input", "value"),
+    [Input("product-name-filter", "value"),
+     Input("brand-filter", "value"),
+     Input("selling-price-filter", "value"),
+     Input("weight-filter", "value"),
+     Input("description-filter", "value"),
+     Input("size-filter", "value"),
+     Input("stock-level-filter", "value"),
      Input("product-prev-btn", "n_clicks"),
      Input("product-next-btn", "n_clicks")],
     [State("product-page-store", "data")]
 )
-def update_product_table(search_value, prev_clicks, next_clicks, current_page):
+def update_product_table(product_name, brand, selling_price, weight, description, size, stock_level, prev_clicks, next_clicks, current_page):
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]["prop_id"].split(".")[0] if ctx.triggered else None
 
     df_products = fetch_products()
 
     # Filter if search value provided
-    if search_value:
-        search_value_lower = search_value.lower()
-        df_products = df_products[df_products["product_name"].str.lower().str.contains(search_value_lower)]
+    # Filter by individual columns
+    if product_name:
+        df_products = df_products[df_products["product_name"].str.contains(product_name, case=False, na=False)]
+    if brand:
+        df_products = df_products[df_products["brand"].str.contains(brand, case=False, na=False)]
+    if selling_price:
+        df_products = df_products[df_products["selling_price"].astype(str).str.contains(selling_price, case=False, na=False)]
+    if weight:
+        df_products = df_products[df_products["weight"].str.contains(weight, case=False, na=False)]
+    if description:
+        df_products = df_products[df_products["description"].str.contains(description, case=False, na=False)]
+    if size:
+        df_products = df_products[df_products["size"].str.contains(size, case=False, na=False)]
+    if stock_level:
+        df_products = df_products[df_products["stock_level"].astype(str).str.contains(stock_level, case=False, na=False)]
 
     if df_products.empty:
         return dbc.Alert("No products found.", color="warning"), create_pagination_controls(1, 1, "product"), 1
@@ -131,7 +156,8 @@ def update_product_table(search_value, prev_clicks, next_clicks, current_page):
     total_pages = math.ceil(total_rows / rows_per_page) if total_rows > 0 else 1
 
     # Handle page changes
-    if triggered_id == "product-search-input":
+    # Handle page changes
+    if any(triggered_id == filter_id for filter_id in ["product-name-filter", "brand-filter", "selling-price-filter", "weight-filter", "description-filter", "size-filter", "stock-level-filter"]):
         current_page = 1
     elif triggered_id == "product-prev-btn":
         current_page = max(1, current_page - 1)

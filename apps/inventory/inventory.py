@@ -82,15 +82,19 @@ def layout(user_role="owner", pathname=None):
                             className="mb-4",
                         ),
 
-                        # --- Search Input ---
+                        # --- Search Inputs ---
                         html.Div(
                             [
-                                html.Label("Search Suppliers", className="mb-2 search-label"),
-                                dbc.Input(
-                                    id="supplier-search-input",
-                                    type="text",
-                                    placeholder="Enter supplier name...",
-                                    className="supplier-search-input mb-4",
+                                html.Label("Filter Suppliers", className="mb-2 search-label"),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(dbc.Input(id="supplier-name-filter", placeholder="Supplier Name", type="text"), width=3),
+                                        dbc.Col(dbc.Input(id="contact-number-filter", placeholder="Contact Number", type="text"), width=2),
+                                        dbc.Col(dbc.Input(id="address-filter", placeholder="Address", type="text"), width=3),
+                                        dbc.Col(dbc.Input(id="product-name-filter", placeholder="Product Name", type="text"), width=2),
+                                        dbc.Col(dbc.Input(id="price-filter", placeholder="Price", type="text"), width=2),
+                                    ],
+                                    className="mb-4",
                                 ),
                             ],
                             className="search-container",
@@ -119,22 +123,33 @@ def layout(user_role="owner", pathname=None):
     [Output("supplier-table-container", "children"),
      Output("supplier-pagination-container", "children"),
      Output("supplier-page-store", "data")],
-    [Input("supplier-search-input", "value"),
+    [Input("supplier-name-filter", "value"),
+     Input("contact-number-filter", "value"),
+     Input("address-filter", "value"),
+     Input("product-name-filter", "value"),
+     Input("price-filter", "value"),
      Input("supplier-prev-btn", "n_clicks"),
      Input("supplier-next-btn", "n_clicks")],
     [State("supplier-page-store", "data")]
 )
-def update_supplier_table(search_value, prev_clicks, next_clicks, current_page):
+def update_supplier_table(supplier_name, contact_number, address, product_name, price, prev_clicks, next_clicks, current_page):
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]["prop_id"].split(".")[0] if ctx.triggered else None
 
     # Fetch supplier data
     df_suppliers = fetch_suppliers()
 
-    # Filter by search value if provided
-    if search_value:
-        search_value_lower = search_value.lower()
-        df_suppliers = df_suppliers[df_suppliers["Supplier Name"].str.lower().str.contains(search_value_lower)]
+    # Filter by individual columns
+    if supplier_name:
+        df_suppliers = df_suppliers[df_suppliers["Supplier Name"].str.contains(supplier_name, case=False, na=False)]
+    if contact_number:
+        df_suppliers = df_suppliers[df_suppliers["Contact Number"].str.contains(contact_number, case=False, na=False)]
+    if address:
+        df_suppliers = df_suppliers[df_suppliers["Address"].str.contains(address, case=False, na=False)]
+    if product_name:
+        df_suppliers = df_suppliers[df_suppliers["Product Name"].str.contains(product_name, case=False, na=False)]
+    if price:
+        df_suppliers = df_suppliers[df_suppliers["Price"].astype(str).str.contains(price, case=False, na=False)]
 
     if df_suppliers.empty:
         return dbc.Alert("No suppliers found.", color="warning"), create_pagination_controls(1, 1, "supplier"), 1
@@ -145,7 +160,7 @@ def update_supplier_table(search_value, prev_clicks, next_clicks, current_page):
     total_pages = math.ceil(total_rows / rows_per_page) if total_rows > 0 else 1
 
     # Handle page changes
-    if triggered_id == "supplier-search-input":
+    if any(triggered_id == filter_id for filter_id in ["supplier-name-filter", "contact-number-filter", "address-filter", "product-name-filter", "price-filter"]):
         current_page = 1
     elif triggered_id == "supplier-prev-btn":
         current_page = max(1, current_page - 1)

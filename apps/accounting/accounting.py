@@ -59,14 +59,20 @@ def layout(user_role="owner", pathname=None):
                         ),
 
                         # --- Search Input ---
+                        # --- Search Inputs ---
                         html.Div(
                             [
                                 html.Label("Filter Orders", className="mb-2 search-label"),
-                                dbc.Input(
-                                    id="order-search-input",
-                                    type="text",
-                                    placeholder="Can filter by order status, order ID, product name, etc",
-                                    className="supplier-search-input mb-4",
+                                dbc.Row(
+                                    [
+                                        dbc.Col(dbc.Input(id="order-id-filter", placeholder="Order ID", type="text"), width=2),
+                                        dbc.Col(dbc.Input(id="client-name-filter", placeholder="Client Name", type="text"), width=2),
+                                        dbc.Col(dbc.Input(id="product-name-filter", placeholder="Product", type="text"), width=2),
+                                        dbc.Col(dbc.Input(id="quantity-filter", placeholder="Qty", type="text"), width=1),
+                                        dbc.Col(dbc.Input(id="order-date-filter", placeholder="Date (YYYY-MM-DD)", type="text"), width=2),
+                                        dbc.Col(dbc.Input(id="order-status-filter", placeholder="Status", type="text"), width=2),
+                                    ],
+                                    className="mb-4",
                                 ),
                             ],
                             className="search-container",
@@ -94,28 +100,35 @@ def layout(user_role="owner", pathname=None):
     [Output("order-table-container", "children"),
      Output("order-pagination-container", "children"),
      Output("order-page-store", "data")],
-    [Input("order-search-input", "value"),
+    [Input("order-id-filter", "value"),
+     Input("client-name-filter", "value"),
+     Input("product-name-filter", "value"),
+     Input("quantity-filter", "value"),
+     Input("order-date-filter", "value"),
+     Input("order-status-filter", "value"),
      Input("order-prev-btn", "n_clicks"),
      Input("order-next-btn", "n_clicks")],
     [State("order-page-store", "data")]
 )
-def update_order_table(search_value, prev_clicks, next_clicks, current_page):
+def update_order_table(order_id, client_name, product_name, quantity, order_date, order_status, prev_clicks, next_clicks, current_page):
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]["prop_id"].split(".")[0] if ctx.triggered else None
 
     df_orders = fetch_orders()
 
-    if search_value:
-        search_value_lower = search_value.lower()
-        # Filter by multiple columns
-        df_orders = df_orders[
-            df_orders["client_name"].str.lower().str.contains(search_value_lower, na=False) |
-            df_orders["product_name"].str.lower().str.contains(search_value_lower, na=False) |
-            df_orders["status_name"].str.lower().str.contains(search_value_lower, na=False) |
-            df_orders["order_id"].astype(str).str.contains(search_value_lower, na=False) |
-            df_orders["quantity_ordered"].astype(str).str.contains(search_value_lower, na=False) |
-            df_orders["order_date"].astype(str).str.contains(search_value_lower, na=False)
-        ]
+    # Filter by individual columns
+    if order_id:
+        df_orders = df_orders[df_orders["order_id"].astype(str).str.contains(order_id, case=False, na=False)]
+    if client_name:
+        df_orders = df_orders[df_orders["client_name"].str.contains(client_name, case=False, na=False)]
+    if product_name:
+        df_orders = df_orders[df_orders["product_name"].str.contains(product_name, case=False, na=False)]
+    if quantity:
+        df_orders = df_orders[df_orders["quantity_ordered"].astype(str).str.contains(quantity, case=False, na=False)]
+    if order_date:
+        df_orders = df_orders[df_orders["order_date"].astype(str).str.contains(order_date, case=False, na=False)]
+    if order_status:
+        df_orders = df_orders[df_orders["status_name"].str.contains(order_status, case=False, na=False)]
 
     if df_orders.empty:
         return dbc.Alert("No orders found.", color="warning"), create_pagination_controls(1, 1, "order"), 1
@@ -126,7 +139,8 @@ def update_order_table(search_value, prev_clicks, next_clicks, current_page):
     total_pages = math.ceil(total_rows / rows_per_page) if total_rows > 0 else 1
 
     # Handle page changes
-    if triggered_id == "order-search-input":
+    # Handle page changes
+    if any(triggered_id == filter_id for filter_id in ["order-id-filter", "client-name-filter", "product-name-filter", "quantity-filter", "order-date-filter", "order-status-filter"]):
         current_page = 1
     elif triggered_id == "order-prev-btn":
         current_page = max(1, current_page - 1)
