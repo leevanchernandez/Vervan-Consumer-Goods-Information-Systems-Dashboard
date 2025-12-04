@@ -59,7 +59,6 @@ def layout(user_role="owner", pathname=None):
                         ),
 
                         # --- Search Input ---
-                        # --- Search Inputs ---
                         html.Div(
                             [
                                 html.Label("Filter Orders", className="mb-2 search-label"),
