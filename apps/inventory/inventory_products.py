@@ -23,7 +23,6 @@ def layout(user_role="owner", pathname=None):
     return dbc.Container(
         [
             dcc.Store(id="product-page-store", data=1),
-            dcc.Store(id="current_user_id", storage_type="session"),
             dcc.Store(id="stock-update-trigger", data=0),
             makeNavbar(user_role=user_role, pathname=pathname),
 
@@ -183,7 +182,6 @@ def update_product_table(product_name, brand, selling_price, weight, description
     total_pages = math.ceil(total_rows / rows_per_page) if total_rows > 0 else 1
 
     # Handle page changes
-    # Handle page changes
     if any(triggered_id == filter_id for filter_id in ["product-name-filter", "brand-filter", "selling-price-filter", "weight-filter", "description-filter", "size-filter", "stock-level-filter"]):
         current_page = 1
     elif triggered_id == "product-prev-btn":
@@ -319,7 +317,7 @@ def manage_stock_modal(add_clicks, cancel_clicks, confirm_clicks, is_open, produ
              return True, product_id, qty, "Error: User not identified. Please log in.", current_trigger
 
         try:
-            # 1. Insert Purchase (Use getDataFromDB for RETURNING)
+
             sql_purchase = """
                 INSERT INTO purchase (arrival_date, staff_id)
                 VALUES (CURRENT_DATE, %s)
@@ -330,15 +328,13 @@ def manage_stock_modal(add_clicks, cancel_clicks, confirm_clicks, is_open, produ
                  return True, product_id, qty, "Error creating purchase record.", current_trigger
                  
             purchase_id = df_purchase.iloc[0]["purchase_id"]
-            
-            # 2. Insert Components
+
             sql_components = """
                 INSERT INTO components (purchase_id, product_id, quantity_purchased)
                 VALUES (%s, %s, %s);
             """
             modifyDB(sql_components, [int(purchase_id), int(product_id), int(qty)])
             
-            # Success: Close modal and increment trigger
             return False, None, None, "", current_trigger + 1
             
         except Exception as e:
