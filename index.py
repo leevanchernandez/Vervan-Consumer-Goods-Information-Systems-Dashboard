@@ -8,7 +8,7 @@ from dash.exceptions import PreventUpdate
 
 # Apps
 from app import app
-from apps import adduser, home, commonmodules as cm, login, manageuser
+from apps import adduser, home, commonmodules as cm, login, manageuser, edituser
 from apps.dashboard import ownerdashboard, accountingdashboard, inventorydashboard
 from apps.reports import reports
 from apps.inventory import inventory, inventory_supplier, inventory_products, products_add, products_edit, supplier_edit
@@ -54,6 +54,11 @@ def displaypage(pathname, user_role):
     elif pathname == '/users/add' or pathname == '/adduser':
         if user_role == 'owner':
             layout = adduser.layout
+        else:
+            return error_403
+    elif pathname == '/users/edit':
+        if user_role == 'owner':
+            layout = edituser.layout
         else:
             return error_403
     elif pathname == '/ownerdashboard':
