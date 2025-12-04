@@ -1,9 +1,9 @@
 import dash
 import dash_bootstrap_components as dbc
-from dash import html, dcc, Input, Output, State
+from dash import html, dcc, Input, Output, State, ALL, MATCH, ctx
 from app import app
 from apps.commonmodules import makeNavbar, create_pagination_controls
-from apps.dbconnect import getDataFromDB  # Make sure you have a function to fetch data
+from apps.dbconnect import getDataFromDB, modifyDB
 import math
 
 # === Function to fetch products from DB ===
@@ -23,6 +23,8 @@ def layout(user_role="owner", pathname=None):
     return dbc.Container(
         [
             dcc.Store(id="product-page-store", data=1),
+            dcc.Store(id="current_user_id", storage_type="session"),
+            dcc.Store(id="stock-update-trigger", data=0),
             makeNavbar(user_role=user_role, pathname=pathname),
 
             # === TOP TAB PILL ===
@@ -103,6 +105,30 @@ def layout(user_role="owner", pathname=None):
                 ),
                 className="inventory-card",
             ),
+
+            # === Add Stock Modal ===
+            dbc.Modal(
+                [
+                    dbc.ModalHeader(dbc.ModalTitle("Add Stock")),
+                    dbc.ModalBody(
+                        [
+                            dcc.Store(id="add-stock-product-id"),
+                            html.Label("Quantity to Add:", className="form-label"),
+                            dbc.Input(id="add-stock-qty", type="number", min=1, placeholder="Enter quantity", className="mb-3"),
+                            html.Div(id="add-stock-feedback", className="text-danger"),
+                        ]
+                    ),
+                    dbc.ModalFooter(
+                        [
+                            dbc.Button("Cancel", id="add-stock-cancel-btn", className="ms-auto", n_clicks=0),
+                            dbc.Button("Add Stock", id="add-stock-confirm-btn", className="ms-2", n_clicks=0, style={"backgroundColor": "#7a5d60", "border": "none"}),
+                        ]
+                    ),
+                ],
+                id="add-stock-modal",
+                is_open=False,
+                centered=True,
+            ),
         ],
         fluid=True,
         style={"padding": "2rem"},
@@ -121,10 +147,11 @@ def layout(user_role="owner", pathname=None):
      Input("size-filter", "value"),
      Input("stock-level-filter", "value"),
      Input("product-prev-btn", "n_clicks"),
-     Input("product-next-btn", "n_clicks")],
+     Input("product-next-btn", "n_clicks"),
+     Input("stock-update-trigger", "data")],
     [State("product-page-store", "data")]
 )
-def update_product_table(product_name, brand, selling_price, weight, description, size, stock_level, prev_clicks, next_clicks, current_page):
+def update_product_table(product_name, brand, selling_price, weight, description, size, stock_level, prev_clicks, next_clicks, stock_update, current_page):
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]["prop_id"].split(".")[0] if ctx.triggered else None
 
@@ -186,21 +213,41 @@ def update_product_table(product_name, brand, selling_price, weight, description
                     html.Td(row["size"]),
                     html.Td(row["stock_level"]),
                     html.Td(
-                        dbc.Button(
-                            "Edit",
-                            href=f"/inventory/products/edit?id={row['product_id']}",
-                            color="secondary",
-                            size="sm",
-                            style={
-                                "background-color": "#977b61",
-                                "color": "#fffaf3",
-                                "border": "none",
-                                "border-radius": "999px",
-                                "padding": "6px 18px",
-                                "font-weight": "500",
-                                "transition": "all 0.2s ease-in-out",
-                            },
-                        )
+                        [
+                            dbc.Button(
+                                "Edit Details",
+                                href=f"/inventory/products/edit?id={row['product_id']}",
+                                color="secondary",
+                                size="sm",
+                                className="me-2",
+                                style={
+                                    "background-color": "#977b61",
+                                    "color": "#fffaf3",
+                                    "border": "none",
+                                    "border-radius": "999px",
+                                    "padding": "6px 18px",
+                                    "font-weight": "500",
+                                    "transition": "all 0.2s ease-in-out",
+                                    "marginRight": "10px",
+                                    "marginBottom": "5px",
+                                },
+                            ),
+                            dbc.Button(
+                                "Add Stock",
+                                id={'type': 'add-stock-btn', 'index': row['product_id']},
+                                color="secondary",
+                                size="sm",
+                                style={
+                                    "background-color": "#977b61",
+                                    "color": "#fffaf3",
+                                    "border": "none",
+                                    "border-radius": "999px",
+                                    "padding": "6px 18px",
+                                    "font-weight": "500",
+                                    "transition": "all 0.2s ease-in-out",
+                                },
+                            ),
+                        ]
                     ),
                 ]
             )
@@ -216,7 +263,7 @@ def update_product_table(product_name, brand, selling_price, weight, description
                 html.Th("Description", style={"width": "20%"}),
                 html.Th("Size", style={"width": "7.5%"}),
                 html.Th("Stock Level", style={"width": "10%"}),
-                html.Th("Action", style={"width": "15%"}),
+                html.Th("Actions", style={"width": "15%"}),
             ])
         ),
         html.Tbody(table_rows)],
@@ -235,4 +282,67 @@ def update_product_table(product_name, brand, selling_price, weight, description
     pagination = create_pagination_controls(current_page, total_pages, "product")
 
     return table, pagination, current_page
+
+# === Callback to Open/Close Modal and Submit Stock ===
+@app.callback(
+    [Output("add-stock-modal", "is_open"),
+     Output("add-stock-product-id", "data"),
+     Output("add-stock-qty", "value"),
+     Output("add-stock-feedback", "children"),
+     Output("stock-update-trigger", "data")],
+    [Input({'type': 'add-stock-btn', 'index': ALL}, 'n_clicks'),
+     Input("add-stock-cancel-btn", "n_clicks"),
+     Input("add-stock-confirm-btn", "n_clicks")],
+    [State("add-stock-modal", "is_open"),
+     State("add-stock-product-id", "data"),
+     State("add-stock-qty", "value"),
+     State("current_user_id", "data"),
+     State("stock-update-trigger", "data")]
+)
+def manage_stock_modal(add_clicks, cancel_clicks, confirm_clicks, is_open, product_id, qty, staff_id, current_trigger):
+    triggered = ctx.triggered_id
+    
+    # Open Modal
+    if isinstance(triggered, dict) and triggered['type'] == 'add-stock-btn':
+        return True, triggered['index'], None, "", current_trigger
+    
+    # Close Modal (Cancel)
+    if triggered == "add-stock-cancel-btn":
+        return False, None, None, "", current_trigger
+    
+    # Submit Stock
+    if triggered == "add-stock-confirm-btn":
+        if not qty or qty <= 0:
+            return True, product_id, qty, "Please enter a valid quantity.", current_trigger
+        
+        if not staff_id:
+             return True, product_id, qty, "Error: User not identified. Please log in.", current_trigger
+
+        try:
+            # 1. Insert Purchase (Use getDataFromDB for RETURNING)
+            sql_purchase = """
+                INSERT INTO purchase (arrival_date, staff_id)
+                VALUES (CURRENT_DATE, %s)
+                RETURNING purchase_id;
+            """
+            df_purchase = getDataFromDB(sql_purchase, [staff_id], ["purchase_id"])
+            if df_purchase.empty:
+                 return True, product_id, qty, "Error creating purchase record.", current_trigger
+                 
+            purchase_id = df_purchase.iloc[0]["purchase_id"]
+            
+            # 2. Insert Components
+            sql_components = """
+                INSERT INTO components (purchase_id, product_id, quantity_purchased)
+                VALUES (%s, %s, %s);
+            """
+            modifyDB(sql_components, [int(purchase_id), int(product_id), int(qty)])
+            
+            # Success: Close modal and increment trigger
+            return False, None, None, "", current_trigger + 1
+            
+        except Exception as e:
+            return True, product_id, qty, f"Error: {str(e)}", current_trigger
+
+    return is_open, product_id, qty, "", current_trigger
 
