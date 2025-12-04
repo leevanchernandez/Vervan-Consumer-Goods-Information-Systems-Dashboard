@@ -46,6 +46,15 @@ def layout(user_role="owner", pathname=None):
                             style={"width": "100%", "display": "block", "marginBottom": "1.5rem"},                                                
                         ),
 
+                        # --- Platform ---
+                        html.Label("Platform:", className="form-label"),
+                        dbc.Select(
+                            id="order_platform",
+                            options=[], # Populated by callback
+                            placeholder="Select Platform",
+                            className="form-input mb-4",
+                        ),
+
                         # --- Products Ordered Container ---
                         html.Label("Products Ordered:", className="form-label mb-3"),
                         html.Div(id="order_product_container", children=[]),
@@ -148,6 +157,7 @@ def layout(user_role="owner", pathname=None):
 # === Callback to Populate Initial Options (Status and Product List) ===
 @app.callback(
     [Output('order_status', 'options'),
+     Output('order_platform', 'options'),
      Output('product_options_store', 'data')],
     [Input('order_username', 'id')] # Dummy input to trigger on load
 )
@@ -161,6 +171,15 @@ def populate_options(_):
     df_status = getDataFromDB(sql_status, [], ["status_id", "status_name"])
     status_options = [{'label': row['status_name'], 'value': row['status_id']} for _, row in df_status.iterrows()]
     
+    # Fetch Platforms
+    sql_platform = """
+        SELECT platform_id, platform_name 
+        FROM platform
+        ORDER BY platform_id;
+    """
+    df_platform = getDataFromDB(sql_platform, [], ["platform_id", "platform_name"])
+    platform_options = [{'label': row['platform_name'], 'value': row['platform_id']} for _, row in df_platform.iterrows()]
+    
     # Fetch Products
     sql_products = """
         SELECT product_id, product_name 
@@ -171,7 +190,7 @@ def populate_options(_):
     df_products = getDataFromDB(sql_products, [], ["product_id", "product_name"])
     product_options = [{'label': row['product_name'], 'value': row['product_id']} for _, row in df_products.iterrows()]
     
-    return status_options, product_options
+    return status_options, platform_options, product_options
 
 # === Callback to Add/Remove Product Rows ===
 @app.callback(
@@ -262,17 +281,18 @@ def manage_product_rows(add_clicks, remove_clicks, children, product_options):
     [State('order_username', 'value'),
      State('order_date', 'date'),
      State('order_status', 'value'),
+     State('order_platform', 'value'),
      State({'type': 'order_product_dropdown', 'index': ALL}, 'value'),
      State({'type': 'order_product_qty', 'index': ALL}, 'value'),
      State('current_user_id', 'data')]
 )
-def submit_order(n_clicks, username, order_date, status_id, product_ids, quantities, staff_id):
+def submit_order(n_clicks, username, order_date, status_id, platform_id, product_ids, quantities, staff_id):
     if not n_clicks:
         raise PreventUpdate
     
     # Validation
-    if not all([username, order_date, status_id]):
-        return False, dbc.Alert("Please fill in Username, Date, and Status.", color="danger")
+    if not all([username, order_date, status_id, platform_id]):
+        return False, dbc.Alert("Please fill in Username, Date, Status, and Platform.", color="danger")
     
     if not product_ids or not any(product_ids):
         return False, dbc.Alert("Please add at least one product.", color="danger")
@@ -314,13 +334,6 @@ def submit_order(n_clicks, username, order_date, status_id, product_ids, quantit
             INSERT INTO "order" (order_date, platform_id, client_id, staff_id, status_id)
             VALUES (%s, %s, %s, %s, %s) RETURNING order_id;
         """
-        # Assuming platform_id is 1 (e.g., 'In-store' or default) since it wasn't specified in inputs.
-        # If platform table exists, we might need to fetch a valid ID. 
-        # Let's assume 1 is valid or NULL if allowed. 
-        # User didn't provide SQL for platform lookup, so I'll assume a default or NULL.
-        # Looking at schema from previous context might help, but let's try 1 or NULL.
-        # Actually, let's try to fetch a platform ID if possible, or just use 1.
-        platform_id = 1 
         
         order_id = modifyDB(sql_insert_order, [order_date, platform_id, client_id, staff_id, status_id], return_id=True)
         

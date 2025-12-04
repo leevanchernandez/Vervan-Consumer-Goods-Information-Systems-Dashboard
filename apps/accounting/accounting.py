@@ -13,6 +13,7 @@ def fetch_orders():
             o.order_id,
             cl.client_name,
             p.product_name,
+            pl.platform_name,
             c.quantity_ordered,
             o.order_date,
             os.status_name
@@ -21,9 +22,10 @@ def fetch_orders():
         JOIN composition c ON o.order_id = c.order_id
         JOIN product p ON c.product_id = p.product_id
         JOIN "order-status" os ON o.status_id = os.status_id
+        LEFT JOIN platform pl ON o.platform_id = pl.platform_id
         ORDER BY o.order_date DESC
     """
-    colnames = ["order_id", "client_name", "product_name", "quantity_ordered", "order_date", "status_name"]
+    colnames = ["order_id", "client_name", "product_name", "platform_name", "quantity_ordered", "order_date", "status_name"]
     df = getDataFromDB(sql, [], colnames)
     return df
 
@@ -64,9 +66,10 @@ def layout(user_role="owner", pathname=None):
                                 html.Label("Filter Orders", className="mb-2 search-label"),
                                 dbc.Row(
                                     [
-                                        dbc.Col(dbc.Input(id="order-id-filter", placeholder="Order ID", type="text"), width=2),
+                                        dbc.Col(dbc.Input(id="order-id-filter", placeholder="Order ID", type="text"), width=1),
                                         dbc.Col(dbc.Input(id="client-name-filter", placeholder="Client Name", type="text"), width=2),
                                         dbc.Col(dbc.Input(id="product-name-filter", placeholder="Product", type="text"), width=2),
+                                        dbc.Col(dbc.Input(id="platform-filter", placeholder="Platform", type="text"), width=2),
                                         dbc.Col(dbc.Input(id="quantity-filter", placeholder="Qty", type="text"), width=1),
                                         dbc.Col(dbc.Input(id="order-date-filter", placeholder="Date (YYYY-MM-DD)", type="text"), width=2),
                                         dbc.Col(dbc.Input(id="order-status-filter", placeholder="Status", type="text"), width=2),
@@ -102,6 +105,7 @@ def layout(user_role="owner", pathname=None):
     [Input("order-id-filter", "value"),
      Input("client-name-filter", "value"),
      Input("product-name-filter", "value"),
+     Input("platform-filter", "value"),
      Input("quantity-filter", "value"),
      Input("order-date-filter", "value"),
      Input("order-status-filter", "value"),
@@ -109,7 +113,7 @@ def layout(user_role="owner", pathname=None):
      Input("order-next-btn", "n_clicks")],
     [State("order-page-store", "data")]
 )
-def update_order_table(order_id, client_name, product_name, quantity, order_date, order_status, prev_clicks, next_clicks, current_page):
+def update_order_table(order_id, client_name, product_name, platform, quantity, order_date, order_status, prev_clicks, next_clicks, current_page):
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]["prop_id"].split(".")[0] if ctx.triggered else None
 
@@ -122,6 +126,8 @@ def update_order_table(order_id, client_name, product_name, quantity, order_date
         df_orders = df_orders[df_orders["client_name"].str.contains(client_name, case=False, na=False)]
     if product_name:
         df_orders = df_orders[df_orders["product_name"].str.contains(product_name, case=False, na=False)]
+    if platform:
+        df_orders = df_orders[df_orders["platform_name"].str.contains(platform, case=False, na=False)]
     if quantity:
         df_orders = df_orders[df_orders["quantity_ordered"].astype(str).str.contains(quantity, case=False, na=False)]
     if order_date:
@@ -139,7 +145,8 @@ def update_order_table(order_id, client_name, product_name, quantity, order_date
 
     # Handle page changes
     # Handle page changes
-    if any(triggered_id == filter_id for filter_id in ["order-id-filter", "client-name-filter", "product-name-filter", "quantity-filter", "order-date-filter", "order-status-filter"]):
+    # Handle page changes
+    if any(triggered_id == filter_id for filter_id in ["order-id-filter", "client-name-filter", "product-name-filter", "platform-filter", "quantity-filter", "order-date-filter", "order-status-filter"]):
         current_page = 1
     elif triggered_id == "order-prev-btn":
         current_page = max(1, current_page - 1)
@@ -162,6 +169,7 @@ def update_order_table(order_id, client_name, product_name, quantity, order_date
                     html.Td(f"ORD-{row['order_id']}"),
                     html.Td(row["client_name"]),
                     html.Td(row["product_name"]),
+                    html.Td(row["platform_name"]),
                     html.Td(f"{row['quantity_ordered']} pcs"),
                     html.Td(row["order_date"].strftime("%Y-%m-%d")),
                     html.Td(row["status_name"]),
@@ -194,6 +202,7 @@ def update_order_table(order_id, client_name, product_name, quantity, order_date
                         html.Th("Order ID"),
                         html.Th("Username"),
                         html.Th("Product"),
+                        html.Th("Platform"),
                         html.Th("Product Quantity"),
                         html.Th("Date Ordered"),
                         html.Th("Order Status"),
