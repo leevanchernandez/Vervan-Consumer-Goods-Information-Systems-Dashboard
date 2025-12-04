@@ -57,7 +57,7 @@ def layout(user_role="owner", pathname=None):
                             className="form-input mb-4",
                         ),
 
-                        # --- Weight, Size, Stock Level ---
+                        # --- Weight, Size ---
                         dbc.Row(
                             [
                                 dbc.Col(
@@ -70,7 +70,7 @@ def layout(user_role="owner", pathname=None):
                                             className="form-input mb-4",
                                         ),
                                     ],
-                                    width=4,
+                                    width=6,
                                 ),
                                 dbc.Col(
                                     [
@@ -82,19 +82,7 @@ def layout(user_role="owner", pathname=None):
                                             className="form-input mb-4",
                                         ),
                                     ],
-                                    width=4,
-                                ),
-                                dbc.Col(
-                                    [
-                                        html.Label("Stock Level"),
-                                        dbc.Input(
-                                            id="edit_product_stock",
-                                            type="number",
-                                            placeholder="ex. 100",
-                                            className="form-input mb-4",
-                                        ),
-                                    ],
-                                    width=4,
+                                    width=6,
                                 ),
                             ],
                             className="g-2",
@@ -222,7 +210,6 @@ def populate_supplier_dropdown(_):
      Output('edit_product_description', 'value'),
      Output('edit_product_weight', 'value'),
      Output('edit_product_size', 'value'),
-     Output('edit_product_stock', 'value'),
      Output('edit_product_supplier', 'value'),
      Output('edit_product_supplied_price', 'value'),
      Output('products_edit_id_store', 'data')],
@@ -246,11 +233,11 @@ def load_product_details(search):
         raise PreventUpdate
 
     sql = """
-        SELECT product_name, brand, selling_price, description, weight, size, beginning_inventory, supplier_id, supplied_price
+        SELECT product_name, brand, selling_price, description, weight, size, supplier_id, supplied_price
         FROM product
         WHERE product_id = %s
     """
-    df = getDataFromDB(sql, [product_id], ["product_name", "brand", "selling_price", "description", "weight", "size", "beginning_inventory", "supplier_id", "supplied_price"])
+    df = getDataFromDB(sql, [product_id], ["product_name", "brand", "selling_price", "description", "weight", "size", "supplier_id", "supplied_price"])
     
     if not df.empty:
         row = df.iloc[0]
@@ -261,12 +248,11 @@ def load_product_details(search):
             row['description'],
             row['weight'],
             row['size'],
-            row['beginning_inventory'],
             row['supplier_id'],
             row['supplied_price'],
             product_id
         )
-    return None, None, None, None, None, None, None, None, None, None
+    return None, None, None, None, None, None, None, None, None
 
 # === Callback to Save Changes ===
 @app.callback(
@@ -280,12 +266,11 @@ def load_product_details(search):
      State('edit_product_description', 'value'),
      State('edit_product_weight', 'value'),
      State('edit_product_size', 'value'),
-     State('edit_product_stock', 'value'),
      State('edit_product_supplier', 'value'),
      State('edit_product_supplied_price', 'value'),
      State('edit_product_delete_checkbox', 'value')]
 )
-def save_product_changes(n_clicks, product_id, name, brand, price, description, weight, size, stock, supplier_id, supplied_price, delete_ind):
+def save_product_changes(n_clicks, product_id, name, brand, price, description, weight, size, supplier_id, supplied_price, delete_ind):
     if not n_clicks or not product_id:
         raise PreventUpdate
         
@@ -303,12 +288,11 @@ def save_product_changes(n_clicks, product_id, name, brand, price, description, 
                 description=%s,
                 weight=%s,
                 size=%s,
-                beginning_inventory=%s,
                 supplier_id=%s,
                 supplied_price=%s
                 WHERE product_id=%s
             """
-            modifyDB(sql, [name, brand, price, description, weight, size, stock, supplier_id, supplied_price, product_id])
+            modifyDB(sql, [name, brand, price, description, weight, size, supplier_id, supplied_price, product_id])
             
         return True, ""
         
