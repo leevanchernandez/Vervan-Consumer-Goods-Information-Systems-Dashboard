@@ -323,11 +323,10 @@ def manage_stock_modal(add_clicks, cancel_clicks, confirm_clicks, is_open, produ
                 VALUES (CURRENT_DATE, %s)
                 RETURNING purchase_id;
             """
-            df_purchase = getDataFromDB(sql_purchase, [staff_id], ["purchase_id"])
-            if df_purchase.empty:
+            purchase_id = modifyDB(sql_purchase, [staff_id], return_id=True)
+            
+            if not purchase_id:
                  return True, product_id, qty, "Error creating purchase record.", current_trigger
-                 
-            purchase_id = df_purchase.iloc[0]["purchase_id"]
 
             sql_components = """
                 INSERT INTO components (purchase_id, product_id, quantity_purchased)
