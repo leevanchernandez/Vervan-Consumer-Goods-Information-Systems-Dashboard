@@ -147,7 +147,9 @@ def update_transaction_report(report_type, start_date, end_date):
                 FROM composition c
                 JOIN product p ON c.product_id = p.product_id
                 JOIN "order" o ON c.order_id = o.order_id
-                WHERE o.order_date BETWEEN %s AND %s;
+                JOIN "order-status" os ON o.status_id = os.status_id
+                WHERE o.order_date BETWEEN %s AND %s
+                  AND os.status_name = 'Delivered';
             """
             df = getDataFromDB(sql, [start_date, end_date], ["total_revenue"])
             if not df.empty and df.iloc[0]["total_revenue"] is not None:
@@ -157,11 +159,13 @@ def update_transaction_report(report_type, start_date, end_date):
             title = "Total Expenses"
             sql = """
                 SELECT 
-                    SUM(c.quantity_purchased * p.supplied_price) AS total_expenses
-                FROM components c
+                    SUM(c.quantity_ordered * p.supplied_price) AS total_expenses
+                FROM composition c
                 JOIN product p ON c.product_id = p.product_id
-                JOIN purchase pu ON c.purchase_id = pu.purchase_id
-                WHERE pu.arrival_date BETWEEN %s AND %s;
+                JOIN "order" o ON c.order_id = o.order_id
+                JOIN "order-status" os ON o.status_id = os.status_id
+                WHERE o.order_date BETWEEN %s AND %s
+                  AND os.status_name = 'Delivered';
             """
             df = getDataFromDB(sql, [start_date, end_date], ["total_expenses"])
             if not df.empty and df.iloc[0]["total_expenses"] is not None:
@@ -170,23 +174,18 @@ def update_transaction_report(report_type, start_date, end_date):
         elif report_type == "net_income":
             title = "Net Income"
             sql = """
-                SELECT 
-                    COALESCE(revenue.total_revenue, 0) - COALESCE(expense.total_expenses, 0) AS net_income
-                FROM
-                    (SELECT SUM(c.quantity_ordered * p.selling_price) AS total_revenue
-                     FROM composition c
-                     JOIN product p ON c.product_id = p.product_id
-                     JOIN "order" o ON c.order_id = o.order_id
-                     WHERE o.order_date BETWEEN %s AND %s) AS revenue,
-                    (SELECT SUM(c.quantity_purchased * p.supplied_price) AS total_expenses
-                     FROM components c
-                     JOIN product p ON c.product_id = p.product_id
-                     JOIN purchase pu ON c.purchase_id = pu.purchase_id
-                     WHERE pu.arrival_date BETWEEN %s AND %s) AS expense;
+                SELECT
+                    SUM(c.quantity_ordered * p.selling_price) - SUM(c.quantity_ordered * p.supplied_price) AS net_income
+                FROM composition c
+                JOIN product p ON c.product_id = p.product_id
+                JOIN "order" o ON c.order_id = o.order_id
+                JOIN "order-status" os ON o.status_id = os.status_id
+                WHERE o.order_date BETWEEN %s AND %s
+                  AND os.status_name = 'Delivered';
             """
             df = getDataFromDB(
                 sql,
-                [start_date, end_date, start_date, end_date],
+                [start_date, end_date],
                 ["net_income"]
             )
             if not df.empty and df.iloc[0]["net_income"] is not None:
