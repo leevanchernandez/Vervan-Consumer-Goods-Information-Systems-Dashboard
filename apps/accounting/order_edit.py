@@ -24,8 +24,8 @@ def layout(user_role="owner", pathname=None):
             dbc.Card(
                 dbc.CardBody(
                     [
-                        # --- Username ---
-                        html.Label("Username (Client Name):", className="form-label"),
+                        # --- Client Name ---
+                        html.Label("Client Name:", className="form-label"),
                         dbc.Input(
                             id="edit_order_username",
                             type="text",
