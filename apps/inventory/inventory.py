@@ -86,15 +86,16 @@ def layout(user_role="owner", pathname=None):
                         html.Div(
                             [
                                 html.Label("Filter Suppliers", className="mb-2 search-label"),
-                                dbc.Row(
+                                html.Div(
                                     [
-                                        dbc.Col(dbc.Input(id="supplier-name-filter", placeholder="Supplier Name", type="text"), width=3),
-                                        dbc.Col(dbc.Input(id="contact-number-filter", placeholder="Contact Number", type="text"), width=2),
-                                        dbc.Col(dbc.Input(id="address-filter", placeholder="Address", type="text"), width=3),
-                                        dbc.Col(dbc.Input(id="product-name-filter", placeholder="Product Name", type="text"), width=2),
-                                        dbc.Col(dbc.Input(id="price-filter", placeholder="Price", type="text"), width=2),
+                                        html.Div(dbc.Input(id="supplier-name-filter", placeholder="Supplier Name", type="text"), style={"width": "20%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="contact-number-filter", placeholder="Contact Number", type="text"), style={"width": "15%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="address-filter", placeholder="Address", type="text"), style={"width": "25%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="product-name-filter", placeholder="Product Name", type="text"), style={"width": "15%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="price-filter", placeholder="Price", type="text"), style={"width": "10%", "padding": "5px"}),
+                                        html.Div(style={"width": "15%", "padding": "5px"}), # Placeholder for Action column
                                     ],
-                                    className="mb-4",
+                                    className="d-flex mb-4",
                                 ),
                             ],
                             className="search-container",
@@ -214,12 +215,12 @@ def update_supplier_table(supplier_name, contact_number, address, product_name, 
             html.Thead(
                 html.Tr(
                     [
-                        html.Th("Supplier Name"),
-                        html.Th("Contact Number"),
-                        html.Th("Address"),
-                        html.Th("Product Name"),
-                        html.Th("Price"),
-                        html.Th("Action"),
+                        html.Th("Supplier Name", style={"width": "20%"}),
+                        html.Th("Contact Number", style={"width": "15%"}),
+                        html.Th("Address", style={"width": "25%"}),
+                        html.Th("Product Name", style={"width": "15%"}),
+                        html.Th("Price", style={"width": "10%"}),
+                        html.Th("Action", style={"width": "15%"}),
                     ]
                 )
             ),

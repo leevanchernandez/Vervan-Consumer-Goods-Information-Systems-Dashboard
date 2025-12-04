@@ -74,17 +74,18 @@ def layout(user_role="owner", pathname=None):
                         html.Div(
                             [
                                 html.Label("Filter Products", className="mb-2 search-label"),
-                                dbc.Row(
+                                html.Div(
                                     [
-                                        dbc.Col(dbc.Input(id="product-name-filter", placeholder="Product Name", type="text"), width=2),
-                                        dbc.Col(dbc.Input(id="brand-filter", placeholder="Brand", type="text"), width=2),
-                                        dbc.Col(dbc.Input(id="selling-price-filter", placeholder="Price", type="text"), width=1),
-                                        dbc.Col(dbc.Input(id="weight-filter", placeholder="Weight", type="text"), width=1),
-                                        dbc.Col(dbc.Input(id="description-filter", placeholder="Description", type="text"), width=2),
-                                        dbc.Col(dbc.Input(id="size-filter", placeholder="Size", type="text"), width=1),
-                                        dbc.Col(dbc.Input(id="stock-level-filter", placeholder="Stock", type="text"), width=1),
+                                        html.Div(dbc.Input(id="product-name-filter", placeholder="Product Name", type="text"), style={"width": "15%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="brand-filter", placeholder="Brand", type="text"), style={"width": "12.5%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="selling-price-filter", placeholder="Price", type="text"), style={"width": "10%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="weight-filter", placeholder="Weight", type="text"), style={"width": "10%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="description-filter", placeholder="Description", type="text"), style={"width": "20%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="size-filter", placeholder="Size", type="text"), style={"width": "7.5%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="stock-level-filter", placeholder="Stock", type="text"), style={"width": "10%", "padding": "5px"}),
+                                        html.Div(style={"width": "15%", "padding": "5px"}), # Placeholder for Action column
                                     ],
-                                    className="mb-4",
+                                    className="d-flex mb-4",
                                 ),
                             ],
                             className="search-container",
@@ -208,14 +209,14 @@ def update_product_table(product_name, brand, selling_price, weight, description
     table = dbc.Table(
         [html.Thead(
             html.Tr([
-                html.Th("Product Name"),
-                html.Th("Brand"),
-                html.Th("Selling Price"),
-                html.Th("Weight"),
-                html.Th("Description"),
-                html.Th("Size"),
-                html.Th("Stock Level"),
-                html.Th("Action"),
+                html.Th("Product Name", style={"width": "15%"}),
+                html.Th("Brand", style={"width": "12.5%"}),
+                html.Th("Selling Price", style={"width": "10%"}),
+                html.Th("Weight", style={"width": "10%"}),
+                html.Th("Description", style={"width": "20%"}),
+                html.Th("Size", style={"width": "7.5%"}),
+                html.Th("Stock Level", style={"width": "10%"}),
+                html.Th("Action", style={"width": "15%"}),
             ])
         ),
         html.Tbody(table_rows)],

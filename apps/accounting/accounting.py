@@ -64,17 +64,18 @@ def layout(user_role="owner", pathname=None):
                         html.Div(
                             [
                                 html.Label("Filter Orders", className="mb-2 search-label"),
-                                dbc.Row(
+                                html.Div(
                                     [
-                                        dbc.Col(dbc.Input(id="order-id-filter", placeholder="Order ID", type="text"), width=1),
-                                        dbc.Col(dbc.Input(id="client-name-filter", placeholder="Client Name", type="text"), width=2),
-                                        dbc.Col(dbc.Input(id="product-name-filter", placeholder="Product", type="text"), width=2),
-                                        dbc.Col(dbc.Input(id="platform-filter", placeholder="Platform", type="text"), width=2),
-                                        dbc.Col(dbc.Input(id="quantity-filter", placeholder="Qty", type="text"), width=1),
-                                        dbc.Col(dbc.Input(id="order-date-filter", placeholder="Date (YYYY-MM-DD)", type="text"), width=2),
-                                        dbc.Col(dbc.Input(id="order-status-filter", placeholder="Status", type="text"), width=2),
+                                        html.Div(dbc.Input(id="order-id-filter", placeholder="Order ID", type="text"), style={"width": "10%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="client-name-filter", placeholder="Client Name", type="text"), style={"width": "15%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="product-name-filter", placeholder="Product", type="text"), style={"width": "15%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="platform-filter", placeholder="Platform", type="text"), style={"width": "10%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="quantity-filter", placeholder="Qty", type="text"), style={"width": "10%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="order-date-filter", placeholder="Date (YYYY-MM-DD)", type="text"), style={"width": "15%", "padding": "5px"}),
+                                        html.Div(dbc.Input(id="order-status-filter", placeholder="Status", type="text"), style={"width": "15%", "padding": "5px"}),
+                                        html.Div(style={"width": "10%", "padding": "5px"}), # Placeholder for Action column
                                     ],
-                                    className="mb-4",
+                                    className="d-flex mb-4",
                                 ),
                             ],
                             className="search-container",
@@ -199,14 +200,14 @@ def update_order_table(order_id, client_name, product_name, platform, quantity, 
             html.Thead(
                 html.Tr(
                     [
-                        html.Th("Order ID"),
-                        html.Th("Username"),
-                        html.Th("Product"),
-                        html.Th("Platform"),
-                        html.Th("Product Quantity"),
-                        html.Th("Date Ordered"),
-                        html.Th("Order Status"),
-                        html.Th("Action"),
+                        html.Th("Order ID", style={"width": "10%"}),
+                        html.Th("Username", style={"width": "15%"}),
+                        html.Th("Product", style={"width": "15%"}),
+                        html.Th("Platform", style={"width": "10%"}),
+                        html.Th("Product Quantity", style={"width": "10%"}),
+                        html.Th("Date Ordered", style={"width": "15%"}),
+                        html.Th("Order Status", style={"width": "15%"}),
+                        html.Th("Action", style={"width": "10%"}),
                     ]
                 )
             ),
