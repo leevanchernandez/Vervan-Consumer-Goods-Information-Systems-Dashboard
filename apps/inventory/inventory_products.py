@@ -9,12 +9,47 @@ import math
 # === Function to fetch products from DB ===
 def fetch_products():
     sql = """
-        SELECT product_id, product_name, brand, selling_price, weight, description, size, beginning_inventory
-        FROM product
-        WHERE product_delete_ind = FALSE
-        ORDER BY product_name
+        SELECT 
+            p.product_id,
+            p.product_name,
+            p.brand,
+            p.selling_price,
+            p.weight,
+            p.description,
+            p.size,
+            (
+                p.beginning_inventory
+                + COALESCE(pur.total_purchased, 0)
+                - COALESCE(ord.total_ordered, 0)
+            ) AS current_stock
+        FROM product p
+
+        -- PURCHASES
+        LEFT JOIN (
+            SELECT
+                co.product_id,
+                SUM(co.quantity_purchased) AS total_purchased
+            FROM components co
+            JOIN purchase pu ON co.purchase_id = pu.purchase_id
+            GROUP BY co.product_id
+        ) pur ON p.product_id = pur.product_id
+
+        -- ORDERS (excluding returns)
+        LEFT JOIN (
+            SELECT 
+                c.product_id,
+                SUM(c.quantity_ordered) AS total_ordered
+            FROM composition c
+            JOIN "order" o ON c.order_id = o.order_id
+            JOIN "order-status" os ON o.status_id = os.status_id
+            WHERE os.status_name != 'Returned'
+            GROUP BY c.product_id
+        ) ord ON p.product_id = ord.product_id
+        
+        WHERE p.product_delete_ind = FALSE
+        ORDER BY p.product_name ASC;
     """
-    colnames = ["product_id", "product_name", "brand", "selling_price", "weight", "description", "size", "stock_level"]
+    colnames = ["product_id", "product_name", "brand", "selling_price", "weight", "description", "size", "current_stock"]
     df = getDataFromDB(sql, [], colnames)
     return df
 
@@ -171,7 +206,7 @@ def update_product_table(product_name, brand, selling_price, weight, description
     if size:
         df_products = df_products[df_products["size"].str.contains(size, case=False, na=False)]
     if stock_level:
-        df_products = df_products[df_products["stock_level"].astype(str).str.contains(stock_level, case=False, na=False)]
+        df_products = df_products[df_products["current_stock"].astype(str).str.contains(stock_level, case=False, na=False)]
 
     if df_products.empty:
         return dbc.Alert("No products found.", color="warning"), create_pagination_controls(1, 1, "product"), 1
@@ -209,7 +244,7 @@ def update_product_table(product_name, brand, selling_price, weight, description
                     html.Td(row["weight"]),
                     html.Td(row["description"]),
                     html.Td(row["size"]),
-                    html.Td(row["stock_level"]),
+                    html.Td(row["current_stock"]),
                     html.Td(
                         [
                             dbc.Button(
@@ -260,7 +295,7 @@ def update_product_table(product_name, brand, selling_price, weight, description
                 html.Th("Weight", style={"width": "10%"}),
                 html.Th("Description", style={"width": "20%"}),
                 html.Th("Size", style={"width": "7.5%"}),
-                html.Th("Stock Level", style={"width": "10%"}),
+                html.Th("Current Stock", style={"width": "10%"}),
                 html.Th("Actions", style={"width": "15%"}),
             ])
         ),
