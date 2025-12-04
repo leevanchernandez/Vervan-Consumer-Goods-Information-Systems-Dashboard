@@ -45,6 +45,15 @@ def layout(user_role="owner", pathname=None):
                             style={"width": "100%", "display": "block", "marginBottom": "1.5rem"},                                                
                         ),
 
+                        # --- Platform ---
+                        html.Label("Platform:", className="form-label"),
+                        dbc.Select(
+                            id="edit_order_platform",
+                            options=[], # Populated by callback
+                            placeholder="Select Platform",
+                            className="form-input mb-4",
+                        ),
+
                         # --- Products Ordered Container ---
                         html.Label("Products Ordered:", className="form-label mb-3"),
                         html.Div(id="edit_order_product_container", children=[]),
@@ -107,7 +116,7 @@ def layout(user_role="owner", pathname=None):
                                 dbc.Col(
                                     dbc.Checkbox(
                                         id="edit_order_delete_checkbox",
-                                        label="Delete (Cancel)?",
+                                        label="Returned?",
                                         value=False,
                                         style={
                                             "fontWeight": "500",
@@ -161,6 +170,7 @@ def layout(user_role="owner", pathname=None):
 # === Callback to Populate Initial Options ===
 @app.callback(
     [Output('edit_order_status', 'options'),
+     Output('edit_order_platform', 'options'),
      Output('edit_product_options_store', 'data')],
     [Input('url_order_edit', 'pathname')]
 )
@@ -173,9 +183,15 @@ def populate_edit_options(_):
     """
     df_status = getDataFromDB(sql_status, [], ["status_id", "status_name"])
     status_options = [{'label': row['status_name'], 'value': row['status_name']} for _, row in df_status.iterrows()] 
-    # Note: User SQL uses status_name for update lookup, so value should be status_name or we map it.
-    # "status_id = (SELECT status_id FROM "order-status" WHERE status_name = %s)"
-    # So the value passed to SQL is status_name.
+    
+    # Fetch Platforms
+    sql_platform = """
+        SELECT platform_id, platform_name
+        FROM platform
+        ORDER BY platform_name;
+    """
+    df_platform = getDataFromDB(sql_platform, [], ["platform_id", "platform_name"])
+    platform_options = [{'label': row['platform_name'], 'value': row['platform_id']} for _, row in df_platform.iterrows()]
     
     # Fetch Products
     sql_products = """
@@ -187,13 +203,14 @@ def populate_edit_options(_):
     df_products = getDataFromDB(sql_products, [], ["product_id", "product_name"])
     product_options = [{'label': row['product_name'], 'value': row['product_id']} for _, row in df_products.iterrows()]
     
-    return status_options, product_options
+    return status_options, platform_options, product_options
 
 # === Callback to Load Order Details ===
 @app.callback(
     [Output('edit_order_username', 'value'),
      Output('edit_order_date', 'date'),
      Output('edit_order_status', 'value'),
+     Output('edit_order_platform', 'value'),
      Output('edit_order_product_container', 'children'),
      Output('order_id_store', 'data')],
     [Input('url_order_edit', 'search')],
@@ -217,24 +234,29 @@ def load_order_details(search, product_options):
 
     # 1. Get Main Order Info
     sql_order = """
-        SELECT o.order_id, o.order_date, cl.client_name, os.status_name
+        SELECT 
+            o.order_id,
+            o.order_date,
+            cl.client_name,
+            os.status_name,
+            p.platform_id
         FROM "order" o
         JOIN "order-status" os ON o.status_id = os.status_id
         JOIN client cl ON o.client_id = cl.client_id
+        LEFT JOIN platform p ON o.platform_id = p.platform_id
         WHERE o.order_id = %s;
     """
-    # Note: User provided query had client_id, but we need client_name for the input field. 
-    # I adjusted the query to join client table.
     
-    df_order = getDataFromDB(sql_order, [order_id], ["order_id", "order_date", "client_name", "status_name"])
+    df_order = getDataFromDB(sql_order, [order_id], ["order_id", "order_date", "client_name", "status_name", "platform_id"])
     
     if df_order.empty:
-        return None, None, None, [], None
+        return None, None, None, None, [], None
         
     row = df_order.iloc[0]
     client_name = row['client_name']
     order_date = row['order_date']
     status_name = row['status_name']
+    platform_id = row['platform_id']
     
     # 2. Get Products
     sql_products = """
@@ -297,7 +319,7 @@ def load_order_details(search, product_options):
         )
         product_rows.append(new_row)
 
-    return client_name, order_date, status_name, product_rows, order_id
+    return client_name, order_date, status_name, platform_id, product_rows, order_id
 
 # === Callback to Add/Remove Product Rows ===
 @app.callback(
@@ -385,35 +407,41 @@ def manage_edit_product_rows(add_clicks, remove_clicks, children, product_option
     [State('order_id_store', 'data'),
      State('edit_order_date', 'date'),
      State('edit_order_status', 'value'),
+     State('edit_order_platform', 'value'),
      State('edit_order_delete_checkbox', 'value'),
      State({'type': 'edit_order_product_dropdown', 'index': ALL}, 'value'),
      State({'type': 'edit_order_product_qty', 'index': ALL}, 'value')]
 )
-def save_order_changes(n_clicks, order_id, order_date, status_name, delete_ind, product_ids, quantities):
+def save_order_changes(n_clicks, order_id, order_date, status_name, platform_id, delete_ind, product_ids, quantities):
     if not n_clicks or not order_id:
         raise PreventUpdate
         
     try:
         if delete_ind:
-            # Soft Delete (Cancel)
             sql = """
                 UPDATE "order"
-                SET status_id = (SELECT status_id FROM "order-status" WHERE status_name = 'Cancelled')
+                SET status_id = (SELECT status_id FROM "order-status" WHERE status_name = 'Returned')
                 WHERE order_id = %s;
             """
             modifyDB(sql, [order_id])
         else:
             # Update Order Details
-            if not order_date or not status_name:
-                 return False, dbc.Alert("Please ensure Date and Status are filled.", color="danger")
+            if not order_date or not status_name or not platform_id:
+                 return False, dbc.Alert("Please ensure Date, Status, and Platform are filled.", color="danger")
             
             sql_update = """
                 UPDATE "order"
-                SET order_date = %s,
-                    status_id = (SELECT status_id FROM "order-status" WHERE status_name = %s)
+                SET 
+                    order_date = %s,
+                    platform_id = %s,
+                    status_id = (
+                        SELECT status_id 
+                        FROM "order-status"
+                        WHERE status_name = %s
+                    )
                 WHERE order_id = %s;
             """
-            modifyDB(sql_update, [order_date, status_name, order_id])
+            modifyDB(sql_update, [order_date, platform_id, status_name, order_id])
             
             # Update Products (Delete old, Insert new)
             # 1. Delete existing composition
