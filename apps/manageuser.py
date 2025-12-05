@@ -25,27 +25,7 @@ def layout(user_role="owner", pathname=None):
         [
             makeNavbar(user_role=user_role, pathname=pathname),
 
-            # === TOP TAB PILL ===
-            dbc.Row(
-                dbc.ButtonGroup(
-                    [
-                        dbc.Button(
-                            "Manage Staff",
-                            href="/users",
-                            id="staff-tab",
-                            className="tab-pill-left active-tab",
-                        ),
-                        dbc.Button(
-                            "Manage Users",
-                            href="/users/manage",
-                            id="manage-users-tab",
-                            className="tab-pill-right",
-                        ),
-                    ],
-                    className="tab-pill-group",
-                ),
-                className="mb-4 justify-content-start",
-            ),
+
 
             # === MAIN CARD ===
             dbc.Card(
