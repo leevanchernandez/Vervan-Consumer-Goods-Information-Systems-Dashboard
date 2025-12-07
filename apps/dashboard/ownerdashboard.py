@@ -136,7 +136,8 @@ def update_owner_dashboard(user_id):
         FROM composition c
         JOIN product p ON c.product_id = p.product_id
         JOIN "order" o ON c.order_id = o.order_id
-        WHERE o.status_id != COALESCE((SELECT status_id FROM "order-status" WHERE status_name = 'Returned'), -1)
+        JOIN "order-status" os ON o.status_id = os.status_id
+        WHERE os.status_name = 'Delivered'
           AND EXTRACT(MONTH FROM o.order_date) = %s 
           AND EXTRACT(YEAR FROM o.order_date) = %s;
     """
@@ -150,12 +151,14 @@ def update_owner_dashboard(user_id):
     # 3. Calculate Total Expenses (This Month)
     # Need to join with purchase table to get date
     sql_expenses = """
-        SELECT SUM(c.quantity_purchased * p.supplied_price) AS total_expenses
-        FROM components c
+        SELECT SUM(c.quantity_ordered * p.supplied_price) AS total_expenses
+        FROM composition c
         JOIN product p ON c.product_id = p.product_id
-        JOIN purchase pu ON c.purchase_id = pu.purchase_id
-        WHERE EXTRACT(MONTH FROM pu.arrival_date) = %s 
-          AND EXTRACT(YEAR FROM pu.arrival_date) = %s;
+        JOIN "order" o ON c.order_id = o.order_id
+        JOIN "order-status" os ON o.status_id = os.status_id
+        WHERE os.status_name = 'Delivered'
+          AND EXTRACT(MONTH FROM o.order_date) = %s 
+          AND EXTRACT(YEAR FROM o.order_date) = %s;
     """
     df_exp = getDataFromDB(sql_expenses, [current_month, current_year], ["total_expenses"])
     total_expenses = 0.0
