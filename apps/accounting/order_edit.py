@@ -255,7 +255,7 @@ def load_order_details(search, product_options):
                         placeholder="Select Product",
                         className="form-input mb-4",
                     ),
-                    width=6,
+                    width=8,
                 ),
                 dbc.Col(
                     dbc.Input(
@@ -267,28 +267,6 @@ def load_order_details(search, product_options):
                     ),
                     width=4,
                 ),
-                dbc.Col(
-                    dbc.Button(
-                        "×",
-                        id={'type': 'edit_remove_product_row_btn', 'index': i},
-                        style={
-                            "backgroundColor": "#1e0f00",
-                            "color": "#faf3e7",
-                            "border": "none",
-                            "borderRadius": "50%",
-                            "width": "38px",
-                            "height": "38px",
-                            "fontWeight": "600",
-                            "fontSize": "1.2rem",
-                            "display": "flex",
-                            "alignItems": "center",
-                            "justifyContent": "center",
-                            "padding": "0",
-                        },
-                    ),
-                    width=2,
-                    className="d-flex align-items-center justify-content-center",
-                ),
             ],
             className="g-2",
             id={'type': 'edit_product_row', 'index': i}
@@ -296,28 +274,6 @@ def load_order_details(search, product_options):
         product_rows.append(new_row)
 
     return client_name, order_date, status_name, platform_id, product_rows, order_id
-
-# === Callback to Add/Remove Product Rows ===
-@app.callback(
-    Output('edit_order_product_container', 'children', allow_duplicate=True),
-    [Input({'type': 'edit_remove_product_row_btn', 'index': ALL}, 'n_clicks')],
-    [State('edit_order_product_container', 'children')],
-    prevent_initial_call=True
-)
-def manage_edit_product_rows(remove_clicks, children):
-    triggered = ctx.triggered_id
-    
-    if not children:
-        children = []
-
-    if isinstance(triggered, dict) and triggered['type'] == 'edit_remove_product_row_btn':
-        index_to_remove = triggered['index']
-        children = [
-            child for child in children 
-            if child['props']['id']['index'] != index_to_remove
-        ]
-
-    return children
 
 # === Callback to Save Changes ===
 @app.callback(
