@@ -229,29 +229,17 @@ def update_report_table(report_type, start_date, end_date):
         elif report_type == 'financial':
             sql = """
                 SELECT
-                    COALESCE(sales.total_revenue, 0) as total_revenue,
-                    COALESCE(purchases.total_expense, 0) as total_expense,
-                    COALESCE(sales.total_revenue, 0) - COALESCE(purchases.total_expense, 0) as net_profit
-                FROM
-                    (SELECT 1 as dummy) d
-                LEFT JOIN
-                    (
-                        SELECT SUM(c.quantity_ordered * p.selling_price) as total_revenue
-                        FROM composition c
-                        JOIN product p ON c.product_id = p.product_id
-                        JOIN "order" o ON c.order_id = o.order_id
-                        WHERE o.order_date BETWEEN %s AND %s
-                    ) sales ON 1=1
-                LEFT JOIN
-                    (
-                        SELECT SUM(co.quantity_purchased * p.supplied_price) as total_expense
-                        FROM components co
-                        JOIN product p ON co.product_id = p.product_id
-                        JOIN purchase pu ON co.purchase_id = pu.purchase_id
-                        WHERE pu.arrival_date BETWEEN %s AND %s
-                    ) purchases ON 1=1;
+                    COALESCE(SUM(c.quantity_ordered * p.selling_price), 0) as total_revenue,
+                    COALESCE(SUM(c.quantity_ordered * p.supplied_price), 0) as total_expense,
+                    COALESCE(SUM(c.quantity_ordered * p.selling_price) - SUM(c.quantity_ordered * p.supplied_price), 0) as net_profit
+                FROM composition c
+                JOIN product p ON c.product_id = p.product_id
+                JOIN "order" o ON c.order_id = o.order_id
+                JOIN "order-status" os ON o.status_id = os.status_id
+                WHERE o.order_date BETWEEN %s AND %s
+                  AND os.status_name = 'Delivered';
             """
-            values = (start_date, end_date, start_date, end_date)
+            values = (start_date, end_date)
             columns = ["Total Revenue", "Total Expense", "Net Profit"]
         
         else:

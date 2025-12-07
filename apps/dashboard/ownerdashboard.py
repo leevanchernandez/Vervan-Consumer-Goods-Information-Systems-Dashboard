@@ -136,7 +136,7 @@ def update_owner_dashboard(user_id):
         FROM composition c
         JOIN product p ON c.product_id = p.product_id
         JOIN "order" o ON c.order_id = o.order_id
-        WHERE o.status_id != COALESCE((SELECT status_id FROM "order-status" WHERE status_name = 'Cancelled'), -1)
+        WHERE o.status_id != COALESCE((SELECT status_id FROM "order-status" WHERE status_name = 'Returned'), -1)
           AND EXTRACT(MONTH FROM o.order_date) = %s 
           AND EXTRACT(YEAR FROM o.order_date) = %s;
     """

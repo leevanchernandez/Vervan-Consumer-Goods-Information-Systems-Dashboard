@@ -58,30 +58,6 @@ def layout(user_role="owner", pathname=None):
                         html.Label("Products Ordered:", className="form-label mb-3"),
                         html.Div(id="edit_order_product_container", children=[]),
 
-                        # --- Add (+) Button ---
-                        html.Div(
-                            dbc.Button(
-                                "+",
-                                id="edit_add_product_row_btn",
-                                n_clicks=0,
-                                style={
-                                    "backgroundColor": "#7a5d60",
-                                    "color": "white",
-                                    "border": "none",
-                                    "borderRadius": "50%",
-                                    "width": "50px",
-                                    "height": "50px",
-                                    "fontWeight": "600",
-                                    "fontSize": "1.5rem",
-                                    "display": "flex",
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                    "margin": "0 auto 30px auto",
-                                },
-                            ),
-                            style={"textAlign": "center"},
-                        ),
-
                         # --- Order Status ---
                         html.Label("Order Status:", className="form-label"),
                         dbc.Select(
@@ -213,8 +189,8 @@ def populate_edit_options(_):
      Output('edit_order_platform', 'value'),
      Output('edit_order_product_container', 'children'),
      Output('order_id_store', 'data')],
-    [Input('url_order_edit', 'search')],
-    [State('edit_product_options_store', 'data')]
+    [Input('url_order_edit', 'search'),
+     Input('edit_product_options_store', 'data')]
 )
 def load_order_details(search, product_options):
     if not search:
@@ -324,73 +300,17 @@ def load_order_details(search, product_options):
 # === Callback to Add/Remove Product Rows ===
 @app.callback(
     Output('edit_order_product_container', 'children', allow_duplicate=True),
-    [Input('edit_add_product_row_btn', 'n_clicks'),
-     Input({'type': 'edit_remove_product_row_btn', 'index': ALL}, 'n_clicks')],
-    [State('edit_order_product_container', 'children'),
-     State('edit_product_options_store', 'data')],
+    [Input({'type': 'edit_remove_product_row_btn', 'index': ALL}, 'n_clicks')],
+    [State('edit_order_product_container', 'children')],
     prevent_initial_call=True
 )
-def manage_edit_product_rows(add_clicks, remove_clicks, children, product_options):
+def manage_edit_product_rows(remove_clicks, children):
     triggered = ctx.triggered_id
     
     if not children:
         children = []
 
-    if triggered == 'edit_add_product_row_btn':
-        # Generate a unique index based on existing children count + timestamp or just random
-        # Simple count might conflict if we remove middle ones, so let's use max index + 1
-        import time
-        new_index = int(time.time() * 1000) 
-        
-        new_row = dbc.Row(
-            [
-                dbc.Col(
-                    dbc.Select(
-                        id={'type': 'edit_order_product_dropdown', 'index': new_index},
-                        options=product_options if product_options else [],
-                        placeholder="Select Product",
-                        className="form-input mb-4",
-                    ),
-                    width=6,
-                ),
-                dbc.Col(
-                    dbc.Input(
-                        id={'type': 'edit_order_product_qty', 'index': new_index},
-                        type="number",
-                        placeholder="Qty",
-                        className="form-input mb-4",
-                    ),
-                    width=4,
-                ),
-                dbc.Col(
-                    dbc.Button(
-                        "×",
-                        id={'type': 'edit_remove_product_row_btn', 'index': new_index},
-                        style={
-                            "backgroundColor": "#1e0f00",
-                            "color": "#faf3e7",
-                            "border": "none",
-                            "borderRadius": "50%",
-                            "width": "38px",
-                            "height": "38px",
-                            "fontWeight": "600",
-                            "fontSize": "1.2rem",
-                            "display": "flex",
-                            "alignItems": "center",
-                            "justifyContent": "center",
-                            "padding": "0",
-                        },
-                    ),
-                    width=2,
-                    className="d-flex align-items-center justify-content-center",
-                ),
-            ],
-            className="g-2",
-            id={'type': 'edit_product_row', 'index': new_index}
-        )
-        children.append(new_row)
-        
-    elif isinstance(triggered, dict) and triggered['type'] == 'edit_remove_product_row_btn':
+    if isinstance(triggered, dict) and triggered['type'] == 'edit_remove_product_row_btn':
         index_to_remove = triggered['index']
         children = [
             child for child in children 
