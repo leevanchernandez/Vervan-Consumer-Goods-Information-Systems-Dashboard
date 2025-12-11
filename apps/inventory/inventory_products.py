@@ -143,19 +143,19 @@ def layout(user_role="owner", pathname=None):
             # === Add Stock Modal ===
             dbc.Modal(
                 [
-                    dbc.ModalHeader(dbc.ModalTitle("Add Stock")),
+                    dbc.ModalHeader(dbc.ModalTitle("Edit Stock")),
                     dbc.ModalBody(
                         [
                             dcc.Store(id="add-stock-product-id"),
-                            html.Label("Quantity to Add:", className="form-label"),
-                            dbc.Input(id="add-stock-qty", type="number", min=1, placeholder="Enter quantity", className="mb-3"),
+                            html.Label("Quantity to Add/Reduce:", className="form-label"),
+                            dbc.Input(id="add-stock-qty", type="number", placeholder="Enter quantity", className="mb-3"),
                             html.Div(id="add-stock-feedback", className="text-danger"),
                         ]
                     ),
                     dbc.ModalFooter(
                         [
                             dbc.Button("Cancel", id="add-stock-cancel-btn", className="ms-auto", n_clicks=0),
-                            dbc.Button("Add Stock", id="add-stock-confirm-btn", className="ms-2", n_clicks=0, style={"backgroundColor": "#7a5d60", "border": "none"}),
+                            dbc.Button("Add/Reduce Stock", id="add-stock-confirm-btn", className="ms-2", n_clicks=0, style={"backgroundColor": "#7a5d60", "border": "none"}),
                         ]
                     ),
                 ],
@@ -266,7 +266,7 @@ def update_product_table(product_name, brand, selling_price, weight, description
                                 },
                             ),
                             dbc.Button(
-                                "Add Stock",
+                                "Edit Stock",
                                 id={'type': 'add-stock-btn', 'index': row['product_id']},
                                 color="secondary",
                                 size="sm",
@@ -345,8 +345,8 @@ def manage_stock_modal(add_clicks, cancel_clicks, confirm_clicks, is_open, produ
     
     # Submit Stock
     if triggered == "add-stock-confirm-btn":
-        if not qty or qty <= 0:
-            return True, product_id, qty, "Please enter a valid quantity.", current_trigger
+        if not qty or qty == 0:
+            return True, product_id, qty, "Please enter a valid quantity (positive to add, negative to reduce).", current_trigger
         
         if not staff_id:
              return True, product_id, qty, "Error: User not identified. Please log in.", current_trigger

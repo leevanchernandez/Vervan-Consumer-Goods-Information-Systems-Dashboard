@@ -163,7 +163,11 @@ def update_inventory_dashboard(user_id):
                     stock_display = "Invalid"
             
             # Determine Status
-            if stock_val < 20:
+            if stock_val <= 0:
+                status = "No Stock"
+                low_stock_items.append(f"{row['product_name']} (No Stock)")
+                status_style = {"color": "red", "fontWeight": "bold"}
+            elif stock_val < 20:
                 status = "Low Stock"
                 low_stock_items.append(row['product_name'])
                 status_style = {"color": "#ff6b6b", "fontWeight": "bold"} # Reddish for alert
