@@ -104,12 +104,41 @@ def update_inventory_dashboard(user_id):
 
     # 2. Fetch Inventory Data
     sql_inv = """
-        SELECT product_name, beginning_inventory
-        FROM product
-        WHERE product_delete_ind = FALSE
-        ORDER BY product_name;
+        SELECT 
+            p.product_name,
+            (
+                p.beginning_inventory
+                + COALESCE(pur.total_purchased, 0)
+                - COALESCE(ord.total_ordered, 0)
+            ) AS current_stock
+        FROM product p
+        
+        -- PURCHASES
+        LEFT JOIN (
+            SELECT
+                co.product_id,
+                SUM(co.quantity_purchased) AS total_purchased
+            FROM components co
+            JOIN purchase pu ON co.purchase_id = pu.purchase_id
+            GROUP BY co.product_id
+        ) pur ON p.product_id = pur.product_id
+
+        -- ORDERS (excluding returns)
+        LEFT JOIN (
+            SELECT 
+                c.product_id,
+                SUM(c.quantity_ordered) AS total_ordered
+            FROM composition c
+            JOIN "order" o ON c.order_id = o.order_id
+            JOIN "order-status" os ON o.status_id = os.status_id
+            WHERE os.status_name != 'Returned'
+            GROUP BY c.product_id
+        ) ord ON p.product_id = ord.product_id
+
+        WHERE p.product_delete_ind = FALSE
+        ORDER BY p.product_name;
     """
-    df_inv = getDataFromDB(sql_inv, [], ["product_name", "beginning_inventory"])
+    df_inv = getDataFromDB(sql_inv, [], ["product_name", "current_stock"])
     
     if not df_inv.empty:
         # --- Build Summary Table ---
@@ -119,7 +148,7 @@ def update_inventory_dashboard(user_id):
         import pandas as pd
         
         for _, row in df_inv.iterrows():
-            stock = row['beginning_inventory']
+            stock = row['current_stock']
             
             # Handle None/NaN stock
             if stock is None or pd.isna(stock):

@@ -79,7 +79,7 @@ def layout(user_role="owner", pathname=None):
                                 dbc.Col(
                                     [
                                         dbc.Label(
-                                            "Password (Leave blank to keep unchanged)",
+                                            "Password",
                                             style={
                                                 "fontWeight": "600",
                                                 "fontSize": "1.1rem",
