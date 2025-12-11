@@ -8,7 +8,7 @@ def getdblocation():
         user="postgres",
         password="12345678",
         port="5432",
-        database="Vervan Sample Data 3"
+        database="Vervan Sample Data 4"
     )
     
     return db
