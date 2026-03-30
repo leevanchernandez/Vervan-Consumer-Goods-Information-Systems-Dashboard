@@ -173,4 +173,4 @@ def toggle_logout_modal(n_btn, n_cancel, n_confirm, is_open):
 
 if __name__ == '__main__':
     webbrowser.open('http://127.0.0.1:8050/', new=0, autoraise=True)
-    app.run(debug=True)
+    app.run(debug=False)
